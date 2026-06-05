@@ -84,7 +84,7 @@
   .textglow { animation: textglow 1.5s ease-in-out infinite; }
   .marquee-wrap { overflow: hidden; white-space: nowrap; }
   .marquee-inner { display: inline-block; animation: scroll 18s linear infinite; }
-  input::placeholder { color: #005500; font-family: "Comic Sans MS", cursive; }
+  input::placeholder { color: #005500; font-family: "Comic Sans MS", "Comic Neue", "Chalkboard SE", "Marker Felt", sans-serif; }
   ::-webkit-scrollbar { width: 10px; }
   ::-webkit-scrollbar-track { background: #000080; border: 1px solid #ff00ff; }
   ::-webkit-scrollbar-thumb { background: #ff00ff; border: 1px solid #ffff00; }
@@ -216,7 +216,7 @@ function NosherSprite({ scale = 1, label = true }) {
       <div style={{ fontSize: 11 * scale, fontFamily: "monospace", color: "#00ffff" }}>
         ╱&nbsp;&nbsp;&nbsp;╲
       </div>
-      {label && <div style={{ fontSize: 9 * scale, color: "#ff00ff", fontFamily: '"Comic Sans MS", cursive', fontWeight: "bold", marginTop: 1, animation: "blink 2s step-start infinite" }}>NOSHER</div>}
+      {label && <div style={{ fontSize: 9 * scale, color: "#ff00ff", fontFamily: '"Comic Sans MS", "Comic Neue", "Chalkboard SE", "Marker Felt", sans-serif', fontWeight: "bold", marginTop: 1, animation: "blink 2s step-start infinite" }}>NOSHER</div>}
     </div>
   );
 }
@@ -372,10 +372,10 @@ function App() {
     page: { minHeight: "100vh", display: "flex", flexDirection: "column", maxWidth: 680, margin: "0 auto", border: "4px solid #ff00ff", background: "#000033" },
     marqueeBar: { background: "#ff00ff", color: "#ffff00", padding: "4px 0", fontWeight: "bold", fontSize: 13, overflow: "hidden" },
     header: { padding: "16px 16px 10px", borderBottom: "4px double #ff00ff", background: "#000080", textAlign: "center" },
-    title: { fontSize: 30, fontWeight: 900, letterSpacing: "3px", fontFamily: '"Comic Sans MS", cursive', marginBottom: 2 },
+    title: { fontSize: 30, fontWeight: 900, letterSpacing: "3px", fontFamily: '"Comic Sans MS", "Comic Neue", "Chalkboard SE", "Marker Felt", sans-serif', marginBottom: 2 },
     subtitle: { fontSize: 12, color: "#ffff00", marginBottom: 6 },
     visitorBar: { fontSize: 11, color: "#00ffff", marginBottom: 10 },
-    navBtn: (active) => ({ padding: "5px 18px", border: `3px ${active ? "inset" : "outset"} #00ffff`, cursor: "pointer", fontSize: 12, fontFamily: '"Comic Sans MS", cursive', background: active ? "#cc00cc" : "#000080", color: active ? "#ffff00" : "#00ffff", fontWeight: "bold", letterSpacing: "1px" }),
+    navBtn: (active) => ({ padding: "5px 18px", border: `3px ${active ? "inset" : "outset"} #00ffff`, cursor: "pointer", fontSize: 12, fontFamily: '"Comic Sans MS", "Comic Neue", "Chalkboard SE", "Marker Felt", sans-serif', background: active ? "#cc00cc" : "#000080", color: active ? "#ffff00" : "#00ffff", fontWeight: "bold", letterSpacing: "1px" }),
     statCard: (warn) => ({ flex: 1, background: "#000066", border: `3px outset ${warn ? "#ff0000" : "#00ff00"}`, padding: "7px 10px" }),
     statVal: (warn) => ({ fontSize: 17, fontWeight: 700, color: warn ? "#ff4444" : "#00ff00", lineHeight: 1 }),
     statLabel: { fontSize: 9, color: "#00aaff", marginTop: 2, textTransform: "uppercase", letterSpacing: "1px" },
@@ -383,9 +383,9 @@ function App() {
     dateNavBtn: (active) => ({ background: "none", border: "none", cursor: active ? "pointer" : "default", color: active ? "#ff00ff" : "#330033", fontSize: 22, padding: "0 8px", fontWeight: "bold" }),
     pastBanner: { background: "#330000", borderBottom: "2px solid #ff0000", padding: "6px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" },
     msgWrap: (isUser) => ({ display: "flex", flexDirection: "column", alignItems: isUser ? "flex-end" : "flex-start", marginBottom: 14 }),
-    msgBubble: (isUser) => ({ maxWidth: "85%", background: isUser ? "#330033" : "#001a00", border: `2px solid ${isUser ? "#ff00ff" : "#00ff00"}`, padding: "9px 13px", fontSize: 13, lineHeight: 1.6, color: isUser ? "#ff88ff" : "#00ff88", whiteSpace: "pre-wrap", fontFamily: '"Comic Sans MS", cursive' }),
-    suggBtn: { background: "#000066", border: "2px outset #00ffff", padding: "4px 12px", color: "#00ffff", fontSize: 12, cursor: "pointer", fontFamily: '"Comic Sans MS", cursive', marginRight: 4, marginTop: 4 },
-    input: { flex: 1, background: "#000022", border: "3px inset #00ff00", padding: "9px 14px", color: "#00ff00", fontSize: 13, fontFamily: '"Comic Sans MS", cursive', outline: "none" },
+    msgBubble: (isUser) => ({ maxWidth: "85%", background: isUser ? "#330033" : "#001a00", border: `2px solid ${isUser ? "#ff00ff" : "#00ff00"}`, padding: "9px 13px", fontSize: 13, lineHeight: 1.6, color: isUser ? "#ff88ff" : "#00ff88", whiteSpace: "pre-wrap", fontFamily: '"Comic Sans MS", "Comic Neue", "Chalkboard SE", "Marker Felt", sans-serif' }),
+    suggBtn: { background: "#000066", border: "2px outset #00ffff", padding: "4px 12px", color: "#00ffff", fontSize: 12, cursor: "pointer", fontFamily: '"Comic Sans MS", "Comic Neue", "Chalkboard SE", "Marker Felt", sans-serif', marginRight: 4, marginTop: 4 },
+    input: { flex: 1, background: "#000022", border: "3px inset #00ff00", padding: "9px 14px", color: "#00ff00", fontSize: 13, fontFamily: '"Comic Sans MS", "Comic Neue", "Chalkboard SE", "Marker Felt", sans-serif', outline: "none" },
     sendBtn: { background: "#006600", border: "3px outset #00ff00", padding: "9px 16px", cursor: "pointer", fontSize: 16, color: "#ffff00", fontWeight: "bold" },
   };
 
@@ -410,7 +410,7 @@ function App() {
             <div style={GEO.subtitle}>
               <span className="blink">★</span> UR PERSONAL CALORIE DIARY!! <span className="blink">★</span>
             </div>
-            <div style={{ background: "#000033", border: "2px solid #ff00ff", padding: "5px 10px", fontSize: 11, color: "#ffff00", fontFamily: '"Comic Sans MS", cursive', marginTop: 4, position: "relative" }}>
+            <div style={{ background: "#000033", border: "2px solid #ff00ff", padding: "5px 10px", fontSize: 11, color: "#ffff00", fontFamily: '"Comic Sans MS", "Comic Neue", "Chalkboard SE", "Marker Felt", sans-serif', marginTop: 4, position: "relative" }}>
               <span style={{ position: "absolute", left: -10, top: "50%", transform: "translateY(-50%)", color: "#ff00ff", fontSize: 16 }}>◄</span>
               hi!! i am NOSHER!! i will help u eat good!! 🍴
             </div>
@@ -447,7 +447,7 @@ function App() {
         <div style={GEO.dateNav}>
           <button onClick={goToPrevEntry} disabled={!canGoPrev} style={GEO.dateNavBtn(canGoPrev)}>◄</button>
           <div style={{ textAlign: "center" }}>
-            <div style={{ fontSize: 14, color: isViewingToday ? "#ffff00" : "#00ffff", fontWeight: "bold", fontFamily: '"Comic Sans MS", cursive' }} className={isViewingToday ? "textglow" : ""}>
+            <div style={{ fontSize: 14, color: isViewingToday ? "#ffff00" : "#00ffff", fontWeight: "bold", fontFamily: '"Comic Sans MS", "Comic Neue", "Chalkboard SE", "Marker Felt", sans-serif' }} className={isViewingToday ? "textglow" : ""}>
               {isViewingToday ? "✦ TODAY ✦" : formatDateFull(viewingDate)}
             </div>
             {isViewingToday && <div style={{ fontSize: 10, color: "#ff00ff", marginTop: 2 }}>{formatDateFull(today())}</div>}
@@ -459,13 +459,13 @@ function App() {
         {!isViewingToday && (
           <div style={GEO.pastBanner}>
             <span style={{ fontSize: 11, color: "#ff4444", fontWeight: "bold" }} className="blink">🚧 PAST ENTRY — READ ONLY 🚧</span>
-            <button onClick={() => setViewingDate(today())} style={{ background: "none", border: "1px solid #ff4444", color: "#ff6666", fontSize: 11, cursor: "pointer", fontFamily: '"Comic Sans MS", cursive', padding: "2px 8px" }}>Back 2 Today!!</button>
+            <button onClick={() => setViewingDate(today())} style={{ background: "none", border: "1px solid #ff4444", color: "#ff6666", fontSize: 11, cursor: "pointer", fontFamily: '"Comic Sans MS", "Comic Neue", "Chalkboard SE", "Marker Felt", sans-serif', padding: "2px 8px" }}>Back 2 Today!!</button>
           </div>
         )}
 
         <div style={{ flex: 1, overflowY: "auto", padding: "14px 14px 8px", minHeight: "55vh", background: "#000022" }}>
           {viewMessages.length === 0 ? (
-            <div style={{ color: "#333366", fontSize: 14, textAlign: "center", padding: "40px 20px", fontFamily: '"Comic Sans MS", cursive' }}>
+            <div style={{ color: "#333366", fontSize: 14, textAlign: "center", padding: "40px 20px", fontFamily: '"Comic Sans MS", "Comic Neue", "Chalkboard SE", "Marker Felt", sans-serif' }}>
               no entry 4 this day... :(<br/>
               <span style={{ fontSize: 20 }}>☆彡</span>
             </div>
@@ -521,7 +521,7 @@ function App() {
               />
               <button onClick={handleSend} style={GEO.sendBtn}>GO!!</button>
             </div>
-            <div style={{ fontSize: 10, color: "#006600", textAlign: "center", marginTop: 6, fontFamily: '"Comic Sans MS", cursive' }}>
+            <div style={{ fontSize: 10, color: "#006600", textAlign: "center", marginTop: 6, fontFamily: '"Comic Sans MS", "Comic Neue", "Chalkboard SE", "Marker Felt", sans-serif' }}>
               ✦ type a food 2 c calorie suggestions ✦ type a number 2 log weight ✦
             </div>
           </div>
@@ -554,7 +554,7 @@ function App() {
                   </div>
                 </>}
               </div>
-            ) : <div style={{ color: "#444488", fontSize: 13, fontFamily: '"Comic Sans MS", cursive' }}>no weight logged yet!! type a number in the journal!! :)</div>}
+            ) : <div style={{ color: "#444488", fontSize: 13, fontFamily: '"Comic Sans MS", "Comic Neue", "Chalkboard SE", "Marker Felt", sans-serif' }}>no weight logged yet!! type a number in the journal!! :)</div>}
             {daysTracking > 0 && <div style={{ marginTop: 8, fontSize: 11, color: "#00aaff" }}>Goal: {WEEKLY_LBS_GOAL} lbs/week · {daysTracking} days in · expected loss: {((daysTracking / 7) * WEEKLY_LBS_GOAL).toFixed(1)} lbs</div>}
           </div>
 
@@ -586,7 +586,7 @@ function App() {
             {calData.filter(d => d.hasData).reverse().slice(0, 14).map((d, i) => (
               <div key={i} onClick={() => { setView("chat"); setViewingDate(d.date); }} style={{ background: "#000055", border: "2px outset #0000aa", padding: "9px 14px", marginBottom: 6, display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}>
                 <div>
-                  <div style={{ fontSize: 13, color: "#ffff00", fontWeight: "bold", fontFamily: '"Comic Sans MS", cursive' }}>{d.date === today() ? "★ Today ★" : formatDate(d.date)}</div>
+                  <div style={{ fontSize: 13, color: "#ffff00", fontWeight: "bold", fontFamily: '"Comic Sans MS", "Comic Neue", "Chalkboard SE", "Marker Felt", sans-serif' }}>{d.date === today() ? "★ Today ★" : formatDate(d.date)}</div>
                   {(foodLog[d.date] || []).map((e, j) => <div key={j} style={{ fontSize: 10, color: "#00aaff" }}>{e.desc} · {e.cal} cal</div>)}
                 </div>
                 <div style={{ textAlign: "right" }}>
@@ -595,7 +595,7 @@ function App() {
                 </div>
               </div>
             ))}
-            {!calData.some(d => d.hasData) && <div style={{ color: "#333366", fontSize: 13, textAlign: "center", padding: "20px 0", fontFamily: '"Comic Sans MS", cursive' }}>no food logged yet!! :(<br/>☆彡</div>}
+            {!calData.some(d => d.hasData) && <div style={{ color: "#333366", fontSize: 13, textAlign: "center", padding: "20px 0", fontFamily: '"Comic Sans MS", "Comic Neue", "Chalkboard SE", "Marker Felt", sans-serif' }}>no food logged yet!! :(<br/>☆彡</div>}
           </div>
         </div>
       )}
