@@ -1,4 +1,25 @@
-import { useState, useEffect, useRef } from "react";
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>nourish</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #0e1117; color: #e8e8e0; font-family: Georgia, serif; }
+  input::placeholder { color: #3a5a3a; }
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: #0e1117; }
+  ::-webkit-scrollbar-thumb { background: #2a4a2a; border-radius: 2px; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
 
 const DAILY_CALORIE_GOAL = 1500;
 const WEEKLY_LBS_GOAL = 2;
@@ -58,6 +79,16 @@ const FOODS = [
   ["acai bowl",380],["smoothie bowl",350],["chia pudding",300],
 ];
 
+// localStorage-backed storage (replaces window.storage from Claude artifacts)
+const storage = {
+  get: async (key) => {
+    try { const v = localStorage.getItem("nourish_" + key); return v ? { value: v } : null; } catch { return null; }
+  },
+  set: async (key, value) => {
+    try { localStorage.setItem("nourish_" + key, value); return true; } catch { return null; }
+  }
+};
+
 function searchFoods(query) {
   const q = query.toLowerCase().trim();
   if (!q) return [];
@@ -70,19 +101,42 @@ function searchFoods(query) {
     else if (n.includes(q)) score = 300;
     else { words.forEach(w => { if (w.length < 2) return; if (n.includes(w)) score += 100; else if (w.includes(n.split(" ")[0])) score += 50; }); }
     return { name, cal, score };
-  }).filter(x => x.score > 0).sort((a,b) => b.score - a.score);
+  }).filter(x => x.score > 0).sort((a, b) => b.score - a.score);
   return scored.slice(0, 6);
 }
 
 function today() { return new Date().toISOString().slice(0, 10); }
-function formatDate(d) { const [y,m,day] = d.split("-"); return new Date(y,m-1,day).toLocaleDateString("en-US",{month:"short",day:"numeric"}); }
-function daysBetween(d1,d2) { return Math.round((new Date(d2)-new Date(d1))/86400000); }
-function parseWeight(text) { const m = text.match(/(\d{2,3}(\.\d{1,2})?)/); if (!m) return null; const n = parseFloat(m[1]); return (n<50||n>700) ? null : n; }
-function looksLikeWeight(text) { const t = text.toLowerCase(); return ["weigh","weight","lbs","lb","pounds","scale","kg"].some(w=>t.includes(w)) || /^\d{2,3}(\.\d{1,2})?\s*(lbs?|kg|pounds?)?$/.test(t.trim()); }
+function formatDate(d) { const [y, m, day] = d.split("-"); return new Date(y, m - 1, day).toLocaleDateString("en-US", { month: "short", day: "numeric" }); }
+function daysBetween(d1, d2) { return Math.round((new Date(d2) - new Date(d1)) / 86400000); }
+function parseWeight(text) { const m = text.match(/(\d{2,3}(\.\d{1,2})?)/); if (!m) return null; const n = parseFloat(m[1]); return (n < 50 || n > 700) ? null : n; }
+function looksLikeWeight(text) { const t = text.toLowerCase(); return ["weigh", "weight", "lbs", "lb", "pounds", "scale", "kg"].some(w => t.includes(w)) || /^\d{2,3}(\.\d{1,2})?\s*(lbs?|kg|pounds?)?$/.test(t.trim()); }
 
-export default function App() {
+function renderText(text) {
+  return text.split(/\*\*(.*?)\*\*/).map((p, j) =>
+    j % 2 === 1 ? <strong key={j} style={{ color: "#a5d6a7" }}>{p}</strong> : p
+  );
+}
+
+function WeightChart({ data }) {
+  const weights = data.map(d => d.w), minW = Math.min(...weights) - 1, maxW = Math.max(...weights) + 1, range = maxW - minW || 1;
+  const toX = i => (i / (data.length - 1)) * 100, toY = w => 60 - ((w - minW) / range) * 60;
+  const pts = data.map((d, i) => `${toX(i)},${toY(d.w)}`).join(" ");
+  return (
+    <div style={{ background: "#131a13", border: "1px solid #1e2e1e", borderRadius: 14, padding: "16px 12px" }}>
+      <svg viewBox="0 0 100 60" style={{ width: "100%", height: 80, overflow: "visible" }}>
+        <polyline points={pts} fill="none" stroke="#4a8a4a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+        {data.map((d, i) => <circle key={i} cx={toX(i)} cy={toY(d.w)} r="2" fill="#81c784" />)}
+      </svg>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#3a5a3a", marginTop: 4 }}>
+        <span>{formatDate(data[0].date)}</span><span>{formatDate(data[data.length - 1].date)}</span>
+      </div>
+    </div>
+  );
+}
+
+function App() {
   const [view, setView] = useState("chat");
-  const [messages, setMessages] = useState([{ role:"assistant", text:"Hey! Log your food by typing what you ate, log your weight by typing a number, or tap Progress to see your charts." }]);
+  const [messages, setMessages] = useState([{ role: "assistant", text: "Hey! Log your food by typing what you ate, log your weight by typing a number, or tap Progress to see your charts." }]);
   const [input, setInput] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [foodLog, setFoodLog] = useState({});
@@ -93,14 +147,14 @@ export default function App() {
 
   useEffect(() => {
     (async () => {
-      try { const r = await window.storage.get("foodLog"); if (r) setFoodLog(JSON.parse(r.value)); } catch {}
-      try { const r = await window.storage.get("weightLog"); if (r) setWeightLog(JSON.parse(r.value)); } catch {}
-      try { const r = await window.storage.get("startWeight"); if (r) setStartWeight(parseFloat(r.value)); } catch {}
-      try { const r = await window.storage.get("startDate"); if (r) setStartDate(r.value); } catch {}
+      try { const r = await storage.get("foodLog"); if (r) setFoodLog(JSON.parse(r.value)); } catch {}
+      try { const r = await storage.get("weightLog"); if (r) setWeightLog(JSON.parse(r.value)); } catch {}
+      try { const r = await storage.get("startWeight"); if (r) setStartWeight(parseFloat(r.value)); } catch {}
+      try { const r = await storage.get("startDate"); if (r) setStartDate(r.value); } catch {}
     })();
   }, []);
 
-  useEffect(() => { bottomRef.current?.scrollIntoView({behavior:"smooth"}); }, [messages]);
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
   function handleInput(val) {
     setInput(val);
@@ -110,149 +164,219 @@ export default function App() {
 
   async function logFood(name, cal, displayText) {
     const date = today();
-    const newLog = {...foodLog};
+    const newLog = { ...foodLog };
     if (!newLog[date]) newLog[date] = [];
-    newLog[date] = [...newLog[date], {desc:name, cal}];
+    newLog[date] = [...newLog[date], { desc: name, cal }];
     setFoodLog(newLog);
-    try { await window.storage.set("foodLog", JSON.stringify(newLog)); } catch {}
-    const todayTotal = newLog[date].reduce((s,e)=>s+e.cal,0);
+    try { await storage.set("foodLog", JSON.stringify(newLog)); } catch {}
+    const todayTotal = newLog[date].reduce((s, e) => s + e.cal, 0);
     const remaining = DAILY_CALORIE_GOAL - todayTotal;
     const extra = remaining < 0 ? `${Math.abs(remaining)} cal over goal` : `${remaining} cal remaining`;
-    setMessages(m=>[...m,{role:"user",text:displayText},{role:"assistant",text:`Logged **${name}** — ${cal} cal.\n\nToday: **${todayTotal} cal** eaten · **${extra}**`}]);
+    setMessages(m => [...m, { role: "user", text: displayText }, { role: "assistant", text: `Logged **${name}** — ${cal} cal.\n\nToday: **${todayTotal} cal** eaten · **${extra}**` }]);
     setInput(""); setSuggestions([]);
   }
 
   async function logWeight(w, displayText) {
     const date = today();
-    const newWL = {...weightLog, [date]:w};
+    const newWL = { ...weightLog, [date]: w };
     setWeightLog(newWL);
-    try { await window.storage.set("weightLog", JSON.stringify(newWL)); } catch {}
-    if (!startWeight) { setStartWeight(w); setStartDate(date); try { await window.storage.set("startWeight",String(w)); await window.storage.set("startDate",date); } catch {} }
-    const sw = startWeight||w, sd = startDate||date;
-    const daysIn = daysBetween(sd,date), lost = sw-w, expectedLoss = (daysIn/7)*WEEKLY_LBS_GOAL;
-    const note = daysIn===0 ? "\n\nThis is your starting weight — I'll track your progress from here!" : lost>=expectedLoss ? `\n\nAhead of pace! Down ${lost.toFixed(1)} lbs vs ${expectedLoss.toFixed(1)} expected.` : `\n\nDown ${lost.toFixed(1)} lbs so far. Goal pace: ${expectedLoss.toFixed(1)} lbs in ${daysIn} days.`;
-    setMessages(m=>[...m,{role:"user",text:displayText},{role:"assistant",text:`Logged **${w} lbs**.`+note}]);
+    try { await storage.set("weightLog", JSON.stringify(newWL)); } catch {}
+    if (!startWeight) {
+      setStartWeight(w); setStartDate(date);
+      try { await storage.set("startWeight", String(w)); await storage.set("startDate", date); } catch {}
+    }
+    const sw = startWeight || w, sd = startDate || date;
+    const daysIn = daysBetween(sd, date), lost = sw - w, expectedLoss = (daysIn / 7) * WEEKLY_LBS_GOAL;
+    const note = daysIn === 0
+      ? "\n\nThis is your starting weight — I'll track your progress from here!"
+      : lost >= expectedLoss
+        ? `\n\nAhead of pace! Down ${lost.toFixed(1)} lbs vs ${expectedLoss.toFixed(1)} expected.`
+        : `\n\nDown ${lost.toFixed(1)} lbs so far. Goal pace: ${expectedLoss.toFixed(1)} lbs in ${daysIn} days.`;
+    setMessages(m => [...m, { role: "user", text: displayText }, { role: "assistant", text: `Logged **${w} lbs**.` + note }]);
     setInput(""); setSuggestions([]);
   }
 
   function handleSend() {
     const text = input.trim(); if (!text) return;
-    if (looksLikeWeight(text)) { const w = parseWeight(text); if (w) { logWeight(w,text); return; } }
+    if (looksLikeWeight(text)) { const w = parseWeight(text); if (w) { logWeight(w, text); return; } }
     const results = searchFoods(text);
-    if (results.length>0 && results[0].score>=300) { logFood(results[0].name,results[0].cal,text); }
-    else if (results.length>0) { setSuggestions(results); setMessages(m=>[...m,{role:"user",text},{role:"assistant",text:`I didn't find an exact match for "${text}". Did you mean one of these?`,suggestions:results.map(r=>r.name)}]); setInput(""); }
-    else { setMessages(m=>[...m,{role:"user",text},{role:"assistant",text:`I don't have "${text}" in my database. Try a simpler term like "chicken breast" or "banana".`}]); setInput(""); }
+    if (results.length > 0 && results[0].score >= 300) { logFood(results[0].name, results[0].cal, text); }
+    else if (results.length > 0) {
+      setSuggestions(results);
+      setMessages(m => [...m, { role: "user", text }, { role: "assistant", text: `I didn't find an exact match for "${text}". Did you mean one of these?`, suggestions: results.map(r => r.name) }]);
+      setInput("");
+    } else {
+      setMessages(m => [...m, { role: "user", text }, { role: "assistant", text: `I don't have "${text}" in my database. Try a simpler term like "chicken breast" or "banana".` }]);
+      setInput("");
+    }
   }
 
-  function getLast30Days() { const days=[]; for(let i=29;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(d.toISOString().slice(0,10));} return days; }
-  const days30=getLast30Days();
-  const calData=days30.map(d=>({date:d,cal:(foodLog[d]||[]).reduce((s,e)=>s+e.cal,0),hasData:!!(foodLog[d]?.length)}));
-  const weightData=days30.filter(d=>weightLog[d]).map(d=>({date:d,w:weightLog[d]}));
-  const todayCal=(foodLog[today()]||[]).reduce((s,e)=>s+e.cal,0);
-  const todayRemaining=DAILY_CALORIE_GOAL-todayCal;
-  const latestWeight=weightData.length?weightData[weightData.length-1].w:null;
-  const totalLost=(startWeight&&latestWeight)?(startWeight-latestWeight).toFixed(1):null;
-  const daysTracking=startDate?daysBetween(startDate,today()):0;
-  const onTrack=totalLost!==null&&daysTracking>0?parseFloat(totalLost)>=(daysTracking/7)*WEEKLY_LBS_GOAL:null;
-  const maxCal=Math.max(...calData.map(d=>d.cal),DAILY_CALORIE_GOAL);
+  function getLast30Days() { const days = []; for (let i = 29; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); days.push(d.toISOString().slice(0, 10)); } return days; }
+  const days30 = getLast30Days();
+  const calData = days30.map(d => ({ date: d, cal: (foodLog[d] || []).reduce((s, e) => s + e.cal, 0), hasData: !!(foodLog[d]?.length) }));
+  const weightData = days30.filter(d => weightLog[d]).map(d => ({ date: d, w: weightLog[d] }));
+  const todayCal = (foodLog[today()] || []).reduce((s, e) => s + e.cal, 0);
+  const todayRemaining = DAILY_CALORIE_GOAL - todayCal;
+  const latestWeight = weightData.length ? weightData[weightData.length - 1].w : null;
+  const totalLost = (startWeight && latestWeight) ? (startWeight - latestWeight).toFixed(1) : null;
+  const daysTracking = startDate ? daysBetween(startDate, today()) : 0;
+  const onTrack = totalLost !== null && daysTracking > 0 ? parseFloat(totalLost) >= (daysTracking / 7) * WEEKLY_LBS_GOAL : null;
+  const maxCal = Math.max(...calData.map(d => d.cal), DAILY_CALORIE_GOAL);
 
   return (
-    <div style={{minHeight:"100vh",background:"#0e1117",color:"#e8e8e0",fontFamily:"Georgia,serif",display:"flex",flexDirection:"column",maxWidth:600,margin:"0 auto"}}>
-      <div style={{padding:"20px 20px 12px",borderBottom:"1px solid #1e2730",background:"#0e1117",position:"sticky",top:0,zIndex:10}}>
-        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+    <div style={{ minHeight: "100vh", background: "#0e1117", color: "#e8e8e0", fontFamily: "Georgia,serif", display: "flex", flexDirection: "column", maxWidth: 600, margin: "0 auto" }}>
+      {/* Header */}
+      <div style={{ padding: "20px 20px 12px", borderBottom: "1px solid #1e2730", background: "#0e1117", position: "sticky", top: 0, zIndex: 10 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
           <div>
-            <div style={{fontSize:20,fontWeight:700,color:"#c8e6c9"}}>nourish</div>
-            <div style={{fontSize:11,color:"#5a7a5a",letterSpacing:"2px",textTransform:"uppercase"}}>your daily companion</div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: "#c8e6c9" }}>nourish</div>
+            <div style={{ fontSize: 11, color: "#5a7a5a", letterSpacing: "2px", textTransform: "uppercase" }}>your daily companion</div>
           </div>
-          <div style={{display:"flex",gap:8}}>
-            {["chat","report"].map(v=>(
-              <button key={v} onClick={()=>setView(v)} style={{padding:"6px 16px",borderRadius:20,border:"none",cursor:"pointer",fontSize:13,fontFamily:"inherit",background:view===v?"#2d4a2d":"#1a2020",color:view===v?"#c8e6c9":"#5a7a5a"}}>
-                {v==="chat"?"Chat":"Progress"}
+          <div style={{ display: "flex", gap: 8 }}>
+            {["chat", "report"].map(v => (
+              <button key={v} onClick={() => setView(v)} style={{ padding: "6px 16px", borderRadius: 20, border: "none", cursor: "pointer", fontSize: 13, fontFamily: "inherit", background: view === v ? "#2d4a2d" : "#1a2020", color: view === v ? "#c8e6c9" : "#5a7a5a" }}>
+                {v === "chat" ? "Chat" : "Progress"}
               </button>
             ))}
           </div>
         </div>
-        <div style={{display:"flex",gap:12,marginTop:14}}>
-          {[{label:"eaten today",val:`${todayCal}`,unit:"cal"},{label:todayRemaining>=0?"remaining":"over goal",val:`${Math.abs(todayRemaining)}`,unit:"cal",warn:todayRemaining<0},latestWeight?{label:"current weight",val:`${latestWeight}`,unit:"lbs"}:null].filter(Boolean).map((s,i)=>(
-            <div key={i} style={{flex:1,background:"#131a13",borderRadius:10,padding:"8px 12px",border:`1px solid ${s.warn?"#5a2020":"#1e2e1e"}`}}>
-              <div style={{fontSize:18,fontWeight:700,color:s.warn?"#e57373":"#a5d6a7",lineHeight:1}}>{s.val} <span style={{fontSize:11,fontWeight:400}}>{s.unit}</span></div>
-              <div style={{fontSize:10,color:"#4a6a4a",marginTop:2,textTransform:"uppercase",letterSpacing:"1px"}}>{s.label}</div>
+        <div style={{ display: "flex", gap: 12, marginTop: 14 }}>
+          {[
+            { label: "eaten today", val: `${todayCal}`, unit: "cal" },
+            { label: todayRemaining >= 0 ? "remaining" : "over goal", val: `${Math.abs(todayRemaining)}`, unit: "cal", warn: todayRemaining < 0 },
+            latestWeight ? { label: "current weight", val: `${latestWeight}`, unit: "lbs" } : null
+          ].filter(Boolean).map((s, i) => (
+            <div key={i} style={{ flex: 1, background: "#131a13", borderRadius: 10, padding: "8px 12px", border: `1px solid ${s.warn ? "#5a2020" : "#1e2e1e"}` }}>
+              <div style={{ fontSize: 18, fontWeight: 700, color: s.warn ? "#e57373" : "#a5d6a7", lineHeight: 1 }}>{s.val} <span style={{ fontSize: 11, fontWeight: 400 }}>{s.unit}</span></div>
+              <div style={{ fontSize: 10, color: "#4a6a4a", marginTop: 2, textTransform: "uppercase", letterSpacing: "1px" }}>{s.label}</div>
             </div>
           ))}
         </div>
       </div>
 
-      {view==="chat" && <>
-        <div style={{flex:1,overflowY:"auto",padding:"16px 16px 8px"}}>
-          {messages.map((m,i)=>(
-            <div key={i} style={{display:"flex",flexDirection:"column",alignItems:m.role==="user"?"flex-end":"flex-start",marginBottom:12}}>
-              <div style={{maxWidth:"82%",background:m.role==="user"?"#1a3a2a":"#141e14",border:`1px solid ${m.role==="user"?"#2a4a3a":"#1e2e1e"}`,borderRadius:m.role==="user"?"18px 18px 4px 18px":"18px 18px 18px 4px",padding:"10px 14px",fontSize:14,lineHeight:1.6,color:m.role==="user"?"#c8e6c9":"#d4dbd4",whiteSpace:"pre-wrap"}}>
-                {m.text.split(/\*\*(.*?)\*\*/).map((p,j)=>j%2===1?<strong key={j} style={{color:"#a5d6a7"}}>{p}</strong>:p)}
+      {/* Chat View */}
+      {view === "chat" && <>
+        <div style={{ flex: 1, overflowY: "auto", padding: "16px 16px 8px", minHeight: "60vh" }}>
+          {messages.map((m, i) => (
+            <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: m.role === "user" ? "flex-end" : "flex-start", marginBottom: 12 }}>
+              <div style={{ maxWidth: "82%", background: m.role === "user" ? "#1a3a2a" : "#141e14", border: `1px solid ${m.role === "user" ? "#2a4a3a" : "#1e2e1e"}`, borderRadius: m.role === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px", padding: "10px 14px", fontSize: 14, lineHeight: 1.6, color: m.role === "user" ? "#c8e6c9" : "#d4dbd4", whiteSpace: "pre-wrap" }}>
+                {renderText(m.text)}
               </div>
-              {m.suggestions&&<div style={{display:"flex",flexWrap:"wrap",gap:6,marginTop:6,maxWidth:"90%"}}>{m.suggestions.map((name,j)=>{const food=FOODS.find(f=>f[0]===name);return food?(<button key={j} onClick={()=>logFood(food[0],food[1],food[0])} style={{background:"#1a2e1a",border:"1px solid #2a4a2a",borderRadius:14,padding:"4px 12px",color:"#a5d6a7",fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>{name} <span style={{color:"#4a7a4a"}}>({food[1]} cal)</span></button>):null;})}</div>}
+              {m.suggestions && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 6, maxWidth: "90%" }}>
+                  {m.suggestions.map((name, j) => {
+                    const food = FOODS.find(f => f[0] === name);
+                    return food ? (
+                      <button key={j} onClick={() => logFood(food[0], food[1], food[0])} style={{ background: "#1a2e1a", border: "1px solid #2a4a2a", borderRadius: 14, padding: "4px 12px", color: "#a5d6a7", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>
+                        {name} <span style={{ color: "#4a7a4a" }}>({food[1]} cal)</span>
+                      </button>
+                    ) : null;
+                  })}
+                </div>
+              )}
             </div>
           ))}
-          <div ref={bottomRef}/>
+          <div ref={bottomRef} />
         </div>
-        {suggestions.length>0&&<div style={{padding:"0 16px 8px",display:"flex",flexWrap:"wrap",gap:6}}>{suggestions.map((s,i)=>(<button key={i} onClick={()=>logFood(s.name,s.cal,s.name)} style={{background:"#131e13",border:"1px solid #2a4a2a",borderRadius:14,padding:"5px 14px",color:"#c8e6c9",fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>{s.name} <span style={{color:"#4a7a4a",fontSize:11}}>{s.cal} cal</span></button>))}</div>}
-        <div style={{padding:"12px 16px 20px",borderTop:"1px solid #1e2730",background:"#0e1117"}}>
-          <div style={{display:"flex",gap:8}}>
-            <input value={input} onChange={e=>handleInput(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleSend()} placeholder="banana, chicken breast, 148 lbs…" style={{flex:1,background:"#141e14",border:"1px solid #2a3a2a",borderRadius:24,padding:"10px 18px",color:"#e8e8e0",fontSize:14,fontFamily:"inherit",outline:"none"}}/>
-            <button onClick={handleSend} style={{background:"#2d4a2d",border:"none",borderRadius:"50%",width:44,height:44,cursor:"pointer",fontSize:18,flexShrink:0}}>↑</button>
+
+        {suggestions.length > 0 && (
+          <div style={{ padding: "0 16px 8px", display: "flex", flexWrap: "wrap", gap: 6 }}>
+            {suggestions.map((s, i) => (
+              <button key={i} onClick={() => logFood(s.name, s.cal, s.name)} style={{ background: "#131e13", border: "1px solid #2a4a2a", borderRadius: 14, padding: "5px 14px", color: "#c8e6c9", fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>
+                {s.name} <span style={{ color: "#4a7a4a", fontSize: 11 }}>{s.cal} cal</span>
+              </button>
+            ))}
           </div>
-          <div style={{fontSize:11,color:"#3a5a3a",textAlign:"center",marginTop:8}}>Type a food to see calorie suggestions · Type a number to log weight</div>
+        )}
+
+        <div style={{ padding: "12px 16px 20px", borderTop: "1px solid #1e2730", background: "#0e1117" }}>
+          <div style={{ display: "flex", gap: 8 }}>
+            <input
+              value={input}
+              onChange={e => handleInput(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && handleSend()}
+              placeholder="banana, chicken breast, 148 lbs…"
+              style={{ flex: 1, background: "#141e14", border: "1px solid #2a3a2a", borderRadius: 24, padding: "10px 18px", color: "#e8e8e0", fontSize: 14, fontFamily: "inherit", outline: "none" }}
+            />
+            <button onClick={handleSend} style={{ background: "#2d4a2d", border: "none", borderRadius: "50%", width: 44, height: 44, cursor: "pointer", fontSize: 18, flexShrink: 0, color: "#c8e6c9" }}>↑</button>
+          </div>
+          <div style={{ fontSize: 11, color: "#3a5a3a", textAlign: "center", marginTop: 8 }}>Type a food to see calorie suggestions · Type a number to log weight</div>
         </div>
       </>}
 
-      {view==="report"&&(
-        <div style={{flex:1,overflowY:"auto",padding:"20px 16px"}}>
-          <div style={{background:"#131a13",border:"1px solid #1e2e1e",borderRadius:14,padding:"16px 20px",marginBottom:20}}>
-            <div style={{fontSize:12,color:"#4a6a4a",textTransform:"uppercase",letterSpacing:"1.5px",marginBottom:10}}>Weight Journey</div>
-            {startWeight?(<div style={{display:"flex",gap:20,flexWrap:"wrap"}}>
-              <div><div style={{fontSize:22,fontWeight:700,color:"#a5d6a7"}}>{startWeight} <span style={{fontSize:13,fontWeight:400}}>lbs</span></div><div style={{fontSize:11,color:"#4a6a4a"}}>start{startDate?` · ${formatDate(startDate)}`:""}</div></div>
-              {latestWeight&&latestWeight!==startWeight&&<><div style={{color:"#2a4a2a",fontSize:20,alignSelf:"center"}}>→</div><div><div style={{fontSize:22,fontWeight:700,color:"#c8e6c9"}}>{latestWeight} <span style={{fontSize:13,fontWeight:400}}>lbs</span></div><div style={{fontSize:11,color:"#4a6a4a"}}>now</div></div><div><div style={{fontSize:22,fontWeight:700,color:parseFloat(totalLost)>0?"#81c784":"#e57373"}}>{parseFloat(totalLost)>0?"−":"+"}{Math.abs(totalLost)} <span style={{fontSize:13,fontWeight:400}}>lbs</span></div><div style={{fontSize:11,color:"#4a6a4a"}}>{onTrack===true?"✓ on track":onTrack===false?"behind pace":"change"}</div></div></>}
-            </div>):<div style={{color:"#4a6a4a",fontSize:14}}>No weight logged yet — type a number in chat!</div>}
-            {daysTracking>0&&<div style={{marginTop:10,fontSize:12,color:"#4a7a4a"}}>Goal: {WEEKLY_LBS_GOAL} lbs/week · {daysTracking} days in · expected loss: {((daysTracking/7)*WEEKLY_LBS_GOAL).toFixed(1)} lbs</div>}
-          </div>
-          {weightData.length>1&&<div style={{marginBottom:20}}><div style={{fontSize:12,color:"#4a6a4a",textTransform:"uppercase",letterSpacing:"1.5px",marginBottom:12}}>Weight Trend</div><WeightChart data={weightData}/></div>}
-          <div style={{marginBottom:20}}>
-            <div style={{fontSize:12,color:"#4a6a4a",textTransform:"uppercase",letterSpacing:"1.5px",marginBottom:12}}>Daily Calories · Last 30 Days</div>
-            <div style={{background:"#131a13",border:"1px solid #1e2e1e",borderRadius:14,padding:"16px 12px"}}>
-              <div style={{display:"flex",alignItems:"flex-end",gap:3,height:100}}>
-                {calData.map((d,i)=>(<div key={i} title={`${formatDate(d.date)}: ${d.cal} cal`} style={{flex:1,height:d.hasData?`${Math.max(3,(d.cal/maxCal)*100)}%`:0,background:d.cal>DAILY_CALORIE_GOAL?"#5a2020":"#2d4a2d",borderRadius:"3px 3px 0 0",minHeight:d.hasData?3:0}}/>))}
+      {/* Progress View */}
+      {view === "report" && (
+        <div style={{ flex: 1, overflowY: "auto", padding: "20px 16px" }}>
+          <div style={{ background: "#131a13", border: "1px solid #1e2e1e", borderRadius: 14, padding: "16px 20px", marginBottom: 20 }}>
+            <div style={{ fontSize: 12, color: "#4a6a4a", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: 10 }}>Weight Journey</div>
+            {startWeight ? (
+              <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
+                <div>
+                  <div style={{ fontSize: 22, fontWeight: 700, color: "#a5d6a7" }}>{startWeight} <span style={{ fontSize: 13, fontWeight: 400 }}>lbs</span></div>
+                  <div style={{ fontSize: 11, color: "#4a6a4a" }}>start{startDate ? ` · ${formatDate(startDate)}` : ""}</div>
+                </div>
+                {latestWeight && latestWeight !== startWeight && <>
+                  <div style={{ color: "#2a4a2a", fontSize: 20, alignSelf: "center" }}>→</div>
+                  <div>
+                    <div style={{ fontSize: 22, fontWeight: 700, color: "#c8e6c9" }}>{latestWeight} <span style={{ fontSize: 13, fontWeight: 400 }}>lbs</span></div>
+                    <div style={{ fontSize: 11, color: "#4a6a4a" }}>now</div>
+                  </div>
+                  <div>
+                    <div style={{ fontSize: 22, fontWeight: 700, color: parseFloat(totalLost) > 0 ? "#81c784" : "#e57373" }}>{parseFloat(totalLost) > 0 ? "−" : "+"}{Math.abs(totalLost)} <span style={{ fontSize: 13, fontWeight: 400 }}>lbs</span></div>
+                    <div style={{ fontSize: 11, color: "#4a6a4a" }}>{onTrack === true ? "✓ on track" : onTrack === false ? "behind pace" : "change"}</div>
+                  </div>
+                </>}
               </div>
-              <div style={{display:"flex",justifyContent:"space-between",marginTop:6}}>
-                <span style={{fontSize:10,color:"#3a5a3a"}}>{formatDate(days30[0])}</span>
-                <span style={{fontSize:10,color:"#4a7a4a"}}>— {DAILY_CALORIE_GOAL} cal goal</span>
-                <span style={{fontSize:10,color:"#3a5a3a"}}>today</span>
+            ) : <div style={{ color: "#4a6a4a", fontSize: 14 }}>No weight logged yet — type a number in chat!</div>}
+            {daysTracking > 0 && <div style={{ marginTop: 10, fontSize: 12, color: "#4a7a4a" }}>Goal: {WEEKLY_LBS_GOAL} lbs/week · {daysTracking} days in · expected loss: {((daysTracking / 7) * WEEKLY_LBS_GOAL).toFixed(1)} lbs</div>}
+          </div>
+
+          {weightData.length > 1 && (
+            <div style={{ marginBottom: 20 }}>
+              <div style={{ fontSize: 12, color: "#4a6a4a", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: 12 }}>Weight Trend</div>
+              <WeightChart data={weightData} />
+            </div>
+          )}
+
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ fontSize: 12, color: "#4a6a4a", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: 12 }}>Daily Calories · Last 30 Days</div>
+            <div style={{ background: "#131a13", border: "1px solid #1e2e1e", borderRadius: 14, padding: "16px 12px" }}>
+              <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height: 100 }}>
+                {calData.map((d, i) => (
+                  <div key={i} title={`${formatDate(d.date)}: ${d.cal} cal`} style={{ flex: 1, height: d.hasData ? `${Math.max(3, (d.cal / maxCal) * 100)}%` : 0, background: d.cal > DAILY_CALORIE_GOAL ? "#5a2020" : "#2d4a2d", borderRadius: "3px 3px 0 0", minHeight: d.hasData ? 3 : 0 }} />
+                ))}
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
+                <span style={{ fontSize: 10, color: "#3a5a3a" }}>{formatDate(days30[0])}</span>
+                <span style={{ fontSize: 10, color: "#4a7a4a" }}>— {DAILY_CALORIE_GOAL} cal goal</span>
+                <span style={{ fontSize: 10, color: "#3a5a3a" }}>today</span>
               </div>
             </div>
           </div>
+
           <div>
-            <div style={{fontSize:12,color:"#4a6a4a",textTransform:"uppercase",letterSpacing:"1.5px",marginBottom:12}}>Recent Days</div>
-            {calData.filter(d=>d.hasData).reverse().slice(0,14).map((d,i)=>(<div key={i} style={{background:"#131a13",border:"1px solid #1e2e1e",borderRadius:10,padding:"10px 16px",marginBottom:6,display:"flex",justifyContent:"space-between",alignItems:"center"}}><div><div style={{fontSize:13,color:"#c8e6c9"}}>{formatDate(d.date)}</div>{(foodLog[d.date]||[]).map((e,j)=><div key={j} style={{fontSize:11,color:"#4a6a4a"}}>{e.desc} · {e.cal} cal</div>)}</div><div style={{textAlign:"right"}}><div style={{fontSize:16,fontWeight:700,color:d.cal>DAILY_CALORIE_GOAL?"#e57373":"#81c784"}}>{d.cal}</div><div style={{fontSize:10,color:"#3a5a3a"}}>cal</div></div></div>))}
-            {!calData.some(d=>d.hasData)&&<div style={{color:"#3a5a3a",fontSize:14,textAlign:"center",padding:"20px 0"}}>No food logged yet.</div>}
+            <div style={{ fontSize: 12, color: "#4a6a4a", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: 12 }}>Recent Days</div>
+            {calData.filter(d => d.hasData).reverse().slice(0, 14).map((d, i) => (
+              <div key={i} style={{ background: "#131a13", border: "1px solid #1e2e1e", borderRadius: 10, padding: "10px 16px", marginBottom: 6, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  <div style={{ fontSize: 13, color: "#c8e6c9" }}>{formatDate(d.date)}</div>
+                  {(foodLog[d.date] || []).map((e, j) => <div key={j} style={{ fontSize: 11, color: "#4a6a4a" }}>{e.desc} · {e.cal} cal</div>)}
+                </div>
+                <div style={{ textAlign: "right" }}>
+                  <div style={{ fontSize: 16, fontWeight: 700, color: d.cal > DAILY_CALORIE_GOAL ? "#e57373" : "#81c784" }}>{d.cal}</div>
+                  <div style={{ fontSize: 10, color: "#3a5a3a" }}>cal</div>
+                </div>
+              </div>
+            ))}
+            {!calData.some(d => d.hasData) && <div style={{ color: "#3a5a3a", fontSize: 14, textAlign: "center", padding: "20px 0" }}>No food logged yet.</div>}
           </div>
         </div>
       )}
-      <style>{`* { box-sizing: border-box; } input::placeholder { color: #3a5a3a; }`}</style>
     </div>
   );
 }
 
-function WeightChart({data}) {
-  const weights=data.map(d=>d.w), minW=Math.min(...weights)-1, maxW=Math.max(...weights)+1, range=maxW-minW||1;
-  const toX=i=>(i/(data.length-1))*100, toY=w=>60-((w-minW)/range)*60;
-  const pts=data.map((d,i)=>`${toX(i)},${toY(d.w)}`).join(" ");
-  return (
-    <div style={{background:"#131a13",border:"1px solid #1e2e1e",borderRadius:14,padding:"16px 12px"}}>
-      <svg viewBox="0 0 100 60" style={{width:"100%",height:80,overflow:"visible"}}>
-        <polyline points={pts} fill="none" stroke="#4a8a4a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-        {data.map((d,i)=><circle key={i} cx={toX(i)} cy={toY(d.w)} r="2" fill="#81c784"/>)}
-      </svg>
-      <div style={{display:"flex",justifyContent:"space-between",fontSize:10,color:"#3a5a3a",marginTop:4}}>
-        <span>{formatDate(data[0].date)}</span><span>{formatDate(data[data.length-1].date)}</span>
-      </div>
-    </div>
-  );
-}
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
