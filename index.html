@@ -3,23 +3,99 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>nourish</title>
+<title>~*~ NOURISH ~*~ ur calorie tracker!!</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
 <style>
+  @keyframes rainbow {
+    0%   { color: #ff0000; text-shadow: 2px 2px #ff000044; }
+    14%  { color: #ff8800; text-shadow: 2px 2px #ff880044; }
+    28%  { color: #ffff00; text-shadow: 2px 2px #ffff0044; }
+    42%  { color: #00ff00; text-shadow: 2px 2px #00ff0044; }
+    57%  { color: #00ffff; text-shadow: 2px 2px #00ffff44; }
+    71%  { color: #0088ff; text-shadow: 2px 2px #0088ff44; }
+    85%  { color: #ff00ff; text-shadow: 2px 2px #ff00ff44; }
+    100% { color: #ff0000; text-shadow: 2px 2px #ff000044; }
+  }
+  @keyframes blink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0; }
+  }
+  @keyframes scroll {
+    0%   { transform: translateX(100vw); }
+    100% { transform: translateX(-200%); }
+  }
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+  }
+  @keyframes glow {
+    0%, 100% { box-shadow: 0 0 6px #ff00ff, 0 0 12px #ff00ff; }
+    50%       { box-shadow: 0 0 16px #ff00ff, 0 0 32px #ff00ff, 0 0 48px #00ffff; }
+  }
+  @keyframes textglow {
+    0%, 100% { text-shadow: 0 0 8px #ff00ff; }
+    50%       { text-shadow: 0 0 20px #ff00ff, 0 0 40px #ff00ff; }
+  }
+  @keyframes stars {
+    0%   { background-position: 0 0, 25px 25px, 50px 10px, 10px 60px; }
+    100% { background-position: 0 200px, 25px 225px, 50px 210px, 10px 260px; }
+  }
+  @keyframes nosherBounce {
+    0%, 100% { transform: translateY(0px) rotate(-2deg); }
+    25%       { transform: translateY(-5px) rotate(2deg); }
+    50%       { transform: translateY(-8px) rotate(-1deg); }
+    75%       { transform: translateY(-3px) rotate(3deg); }
+  }
+  @keyframes nosherTalk {
+    0%, 90%, 100% { transform: scaleY(1); }
+    95%           { transform: scaleY(0.7); }
+  }
+  .nosher { animation: nosherBounce 1.4s ease-in-out infinite; display: inline-block; cursor: default; }
+  .nosher:hover { animation-play-state: paused; filter: brightness(1.5); }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: #0e1117; color: #e8e8e0; font-family: Georgia, serif; }
-  input::placeholder { color: #3a5a3a; }
-  ::-webkit-scrollbar { width: 4px; }
-  ::-webkit-scrollbar-track { background: #0e1117; }
-  ::-webkit-scrollbar-thumb { background: #2a4a2a; border-radius: 2px; }
+  html, body {
+    min-height: 100%;
+    background-color: #000022;
+    background-image:
+      radial-gradient(1px 1px at 15% 25%, #fff, transparent),
+      radial-gradient(1px 1px at 35% 55%, #fff, transparent),
+      radial-gradient(1.5px 1.5px at 55% 15%, #aef, transparent),
+      radial-gradient(1px 1px at 70% 80%, #fff, transparent),
+      radial-gradient(1px 1px at 85% 40%, #ffa, transparent),
+      radial-gradient(1px 1px at 25% 75%, #fff, transparent),
+      radial-gradient(1.5px 1.5px at 60% 60%, #faf, transparent),
+      radial-gradient(1px 1px at 90% 10%, #fff, transparent),
+      radial-gradient(1px 1px at 5% 90%, #aff, transparent),
+      radial-gradient(1px 1px at 45% 35%, #fff, transparent),
+      radial-gradient(1px 1px at 78% 55%, #fff, transparent),
+      radial-gradient(1px 1px at 12% 48%, #ffa, transparent);
+    background-size: 300px 300px;
+    animation: stars 20s linear infinite;
+    font-family: "Comic Sans MS", "Comic Sans", cursive;
+    color: #00ff00;
+  }
+  .rainbow { animation: rainbow 1.8s linear infinite; }
+  .blink   { animation: blink 0.9s step-start infinite; }
+  .spin    { display: inline-block; animation: spin 3s linear infinite; }
+  .glow    { animation: glow 2s ease-in-out infinite; }
+  .textglow { animation: textglow 1.5s ease-in-out infinite; }
+  .marquee-wrap { overflow: hidden; white-space: nowrap; }
+  .marquee-inner { display: inline-block; animation: scroll 18s linear infinite; }
+  input::placeholder { color: #005500; font-family: "Comic Sans MS", cursive; }
+  ::-webkit-scrollbar { width: 10px; }
+  ::-webkit-scrollbar-track { background: #000080; border: 1px solid #ff00ff; }
+  ::-webkit-scrollbar-thumb { background: #ff00ff; border: 1px solid #ffff00; }
+  button { transition: filter 0.1s, transform 0.1s; }
+  button:hover:not(:disabled) { filter: brightness(1.4); transform: scale(1.06); }
+  hr.geo { border: none; border-top: 3px double #ff00ff; margin: 8px 0; }
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const { useState, useEffect, useRef } = React;
+const { useState, useEffect, useRef, useMemo } = React;
 
 const DAILY_CALORIE_GOAL = 1500;
 const WEEKLY_LBS_GOAL = 2;
@@ -79,7 +155,6 @@ const FOODS = [
   ["acai bowl",380],["smoothie bowl",350],["chia pudding",300],
 ];
 
-// localStorage-backed storage (replaces window.storage from Claude artifacts)
 const storage = {
   get: async (key) => {
     try { const v = localStorage.getItem("nourish_" + key); return v ? { value: v } : null; } catch { return null; }
@@ -107,13 +182,41 @@ function searchFoods(query) {
 
 function today() { return new Date().toISOString().slice(0, 10); }
 function formatDate(d) { const [y, m, day] = d.split("-"); return new Date(y, m - 1, day).toLocaleDateString("en-US", { month: "short", day: "numeric" }); }
+function formatDateFull(d) { const [y, m, day] = d.split("-"); return new Date(y, m - 1, day).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" }); }
 function daysBetween(d1, d2) { return Math.round((new Date(d2) - new Date(d1)) / 86400000); }
 function parseWeight(text) { const m = text.match(/(\d{2,3}(\.\d{1,2})?)/); if (!m) return null; const n = parseFloat(m[1]); return (n < 50 || n > 700) ? null : n; }
 function looksLikeWeight(text) { const t = text.toLowerCase(); return ["weigh", "weight", "lbs", "lb", "pounds", "scale", "kg"].some(w => t.includes(w)) || /^\d{2,3}(\.\d{1,2})?\s*(lbs?|kg|pounds?)?$/.test(t.trim()); }
+function shiftDate(dateStr, delta) { const d = new Date(dateStr + "T00:00:00"); d.setDate(d.getDate() + delta); return d.toISOString().slice(0, 10); }
 
 function renderText(text) {
   return text.split(/\*\*(.*?)\*\*/).map((p, j) =>
-    j % 2 === 1 ? <strong key={j} style={{ color: "#a5d6a7" }}>{p}</strong> : p
+    j % 2 === 1 ? <strong key={j} style={{ color: "#ffff00" }}>{p}</strong> : p
+  );
+}
+
+function NosherSprite({ scale = 1, label = true }) {
+  return (
+    <div className="nosher" style={{ textAlign: "center", lineHeight: 1.1, userSelect: "none", display: "inline-block" }}>
+      <div style={{ fontSize: 13 * scale, fontFamily: "monospace", color: "#00ff88", letterSpacing: 0 }}>
+        ╭─────╮
+      </div>
+      <div style={{ fontSize: 13 * scale, fontFamily: "monospace", color: "#00ff88" }}>
+        │◕ᴗ◕ノ│
+      </div>
+      <div style={{ fontSize: 12 * scale, fontFamily: "monospace", color: "#ff88ff" }}>
+        ╰──┬──╯
+      </div>
+      <div style={{ fontSize: 13 * scale, fontFamily: "monospace", color: "#ffff00" }}>
+        🍴 ┃ 🍴
+      </div>
+      <div style={{ fontSize: 11 * scale, fontFamily: "monospace", color: "#00ffff" }}>
+        &nbsp;╱&nbsp;┃&nbsp;╲
+      </div>
+      <div style={{ fontSize: 11 * scale, fontFamily: "monospace", color: "#00ffff" }}>
+        ╱&nbsp;&nbsp;&nbsp;╲
+      </div>
+      {label && <div style={{ fontSize: 9 * scale, color: "#ff00ff", fontFamily: '"Comic Sans MS", cursive', fontWeight: "bold", marginTop: 1, animation: "blink 2s step-start infinite" }}>NOSHER</div>}
+    </div>
   );
 }
 
@@ -122,39 +225,65 @@ function WeightChart({ data }) {
   const toX = i => (i / (data.length - 1)) * 100, toY = w => 60 - ((w - minW) / range) * 60;
   const pts = data.map((d, i) => `${toX(i)},${toY(d.w)}`).join(" ");
   return (
-    <div style={{ background: "#131a13", border: "1px solid #1e2e1e", borderRadius: 14, padding: "16px 12px" }}>
+    <div style={{ background: "#000044", border: "3px solid #ff00ff", padding: "12px 10px" }}>
       <svg viewBox="0 0 100 60" style={{ width: "100%", height: 80, overflow: "visible" }}>
-        <polyline points={pts} fill="none" stroke="#4a8a4a" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-        {data.map((d, i) => <circle key={i} cx={toX(i)} cy={toY(d.w)} r="2" fill="#81c784" />)}
+        <polyline points={pts} fill="none" stroke="#00ffff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        {data.map((d, i) => <circle key={i} cx={toX(i)} cy={toY(d.w)} r="3" fill="#ff00ff" stroke="#ffff00" strokeWidth="1" />)}
       </svg>
-      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#3a5a3a", marginTop: 4 }}>
-        <span>{formatDate(data[0].date)}</span><span>{formatDate(data[data.length - 1].date)}</span>
+      <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#ff00ff", marginTop: 4 }}>
+        <span>✦ {formatDate(data[0].date)}</span><span>{formatDate(data[data.length - 1].date)} ✦</span>
       </div>
     </div>
   );
 }
 
+const WELCOME_MSG = { role: "assistant", text: "HELLO!! i am NOSHER!! 🍴\n\ni am very hungry and i am here 2 help u track ur food!!\n\ntype what u ate and i will log it!! type a number like \"148 lbs\" and i will track ur weight!! or click PROGRESS 2 see ur charts!!\n\ni have been waiting all day 4 u!! let's eat (responsibly)!! ^ᴗ^" };
+
 function App() {
   const [view, setView] = useState("chat");
-  const [messages, setMessages] = useState([{ role: "assistant", text: "Hey! Log your food by typing what you ate, log your weight by typing a number, or tap Progress to see your charts." }]);
+  const [chatLog, setChatLog] = useState({});
+  const [viewingDate, setViewingDate] = useState(today());
   const [input, setInput] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [foodLog, setFoodLog] = useState({});
   const [weightLog, setWeightLog] = useState({});
   const [startWeight, setStartWeight] = useState(null);
   const [startDate, setStartDate] = useState(null);
+  const [visitors, setVisitors] = useState(1337);
   const bottomRef = useRef(null);
 
   useEffect(() => {
     (async () => {
+      try { const r = await storage.get("chatLog"); if (r) setChatLog(JSON.parse(r.value)); } catch {}
       try { const r = await storage.get("foodLog"); if (r) setFoodLog(JSON.parse(r.value)); } catch {}
       try { const r = await storage.get("weightLog"); if (r) setWeightLog(JSON.parse(r.value)); } catch {}
       try { const r = await storage.get("startWeight"); if (r) setStartWeight(parseFloat(r.value)); } catch {}
       try { const r = await storage.get("startDate"); if (r) setStartDate(r.value); } catch {}
+      const v = parseInt(localStorage.getItem("nourish_visitors") || "1336") + 1;
+      localStorage.setItem("nourish_visitors", String(v));
+      setVisitors(v);
     })();
   }, []);
 
-  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+  useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: "smooth" }); }, [chatLog, viewingDate]);
+
+  const isViewingToday = viewingDate === today();
+  const viewMessages = chatLog[viewingDate] || (isViewingToday ? [WELCOME_MSG] : []);
+
+  const journalDates = useMemo(() => {
+    const dates = Object.keys(chatLog).filter(d => chatLog[d]?.length > 0);
+    if (!dates.includes(today())) dates.push(today());
+    return dates.sort().reverse();
+  }, [chatLog]);
+
+  async function addToChat(userMsg, assistantMsg) {
+    const date = today();
+    const base = chatLog[date] || [WELCOME_MSG];
+    const updated = [...base, userMsg, assistantMsg];
+    const newChatLog = { ...chatLog, [date]: updated };
+    setChatLog(newChatLog);
+    try { await storage.set("chatLog", JSON.stringify(newChatLog)); } catch {}
+  }
 
   function handleInput(val) {
     setInput(val);
@@ -171,9 +300,10 @@ function App() {
     try { await storage.set("foodLog", JSON.stringify(newLog)); } catch {}
     const todayTotal = newLog[date].reduce((s, e) => s + e.cal, 0);
     const remaining = DAILY_CALORIE_GOAL - todayTotal;
-    const extra = remaining < 0 ? `${Math.abs(remaining)} cal over goal` : `${remaining} cal remaining`;
-    setMessages(m => [...m, { role: "user", text: displayText }, { role: "assistant", text: `Logged **${name}** — ${cal} cal.\n\nToday: **${todayTotal} cal** eaten · **${extra}**` }]);
+    const extra = remaining < 0 ? `${Math.abs(remaining)} cal over goal omg!!` : `${remaining} cal remaining!! keep going!! :D`;
+    await addToChat({ role: "user", text: displayText }, { role: "assistant", text: `ooh yes!! nosher has logged **${name}** — ${cal} cal!! 🍴\n\nToday: **${todayTotal} cal** eaten · **${extra}**` });
     setInput(""); setSuggestions([]);
+    setViewingDate(today());
   }
 
   async function logWeight(w, displayText) {
@@ -188,12 +318,13 @@ function App() {
     const sw = startWeight || w, sd = startDate || date;
     const daysIn = daysBetween(sd, date), lost = sw - w, expectedLoss = (daysIn / 7) * WEEKLY_LBS_GOAL;
     const note = daysIn === 0
-      ? "\n\nThis is your starting weight — I'll track your progress from here!"
+      ? "\n\nThis is ur starting weight!! I'll track ur progress from here!! :)"
       : lost >= expectedLoss
-        ? `\n\nAhead of pace! Down ${lost.toFixed(1)} lbs vs ${expectedLoss.toFixed(1)} expected.`
-        : `\n\nDown ${lost.toFixed(1)} lbs so far. Goal pace: ${expectedLoss.toFixed(1)} lbs in ${daysIn} days.`;
-    setMessages(m => [...m, { role: "user", text: displayText }, { role: "assistant", text: `Logged **${w} lbs**.` + note }]);
+        ? `\n\nOMG ur ahead of pace!! Down ${lost.toFixed(1)} lbs vs ${expectedLoss.toFixed(1)} expected!! u go!!`
+        : `\n\nDown ${lost.toFixed(1)} lbs so far!! Goal pace: ${expectedLoss.toFixed(1)} lbs in ${daysIn} days!! u can do it!!`;
+    await addToChat({ role: "user", text: displayText }, { role: "assistant", text: `nosher has written down **${w} lbs**!! ✦` + note });
     setInput(""); setSuggestions([]);
+    setViewingDate(today());
   }
 
   function handleSend() {
@@ -203,13 +334,26 @@ function App() {
     if (results.length > 0 && results[0].score >= 300) { logFood(results[0].name, results[0].cal, text); }
     else if (results.length > 0) {
       setSuggestions(results);
-      setMessages(m => [...m, { role: "user", text }, { role: "assistant", text: `I didn't find an exact match for "${text}". Did you mean one of these?`, suggestions: results.map(r => r.name) }]);
-      setInput("");
+      const base = chatLog[today()] || [WELCOME_MSG];
+      const updated = [...base, { role: "user", text }, { role: "assistant", text: `nosher scratches his head... idk "${text}" exactly!! 🤔 did u mean one of these??`, suggestions: results.map(r => r.name) }];
+      const newChatLog = { ...chatLog, [today()]: updated };
+      setChatLog(newChatLog);
+      storage.set("chatLog", JSON.stringify(newChatLog));
+      setInput(""); setViewingDate(today());
     } else {
-      setMessages(m => [...m, { role: "user", text }, { role: "assistant", text: `I don't have "${text}" in my database. Try a simpler term like "chicken breast" or "banana".` }]);
-      setInput("");
+      const base = chatLog[today()] || [WELCOME_MSG];
+      const updated = [...base, { role: "user", text }, { role: "assistant", text: `nosher does not know what "${text}" is!! :(\n\nnosher only knows real foods!! try something like "chicken breast" or "banana"!! nosher is sorry!!` }];
+      const newChatLog = { ...chatLog, [today()]: updated };
+      setChatLog(newChatLog);
+      storage.set("chatLog", JSON.stringify(newChatLog));
+      setInput(""); setViewingDate(today());
     }
   }
+
+  const canGoPrev = journalDates.some(d => d < viewingDate);
+  const canGoNext = viewingDate < today();
+  function goToPrevEntry() { const prev = journalDates.find(d => d < viewingDate); if (prev) setViewingDate(prev); }
+  function goToNextEntry() { const all = [...journalDates].reverse(); const next = all.find(d => d > viewingDate); if (next) setViewingDate(next); }
 
   function getLast30Days() { const days = []; for (let i = 29; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); days.push(d.toISOString().slice(0, 10)); } return days; }
   const days30 = getLast30Days();
@@ -223,52 +367,127 @@ function App() {
   const onTrack = totalLost !== null && daysTracking > 0 ? parseFloat(totalLost) >= (daysTracking / 7) * WEEKLY_LBS_GOAL : null;
   const maxCal = Math.max(...calData.map(d => d.cal), DAILY_CALORIE_GOAL);
 
+  const GEO = {
+    page: { minHeight: "100vh", display: "flex", flexDirection: "column", maxWidth: 680, margin: "0 auto", border: "4px solid #ff00ff", background: "#000033" },
+    marqueeBar: { background: "#ff00ff", color: "#ffff00", padding: "4px 0", fontWeight: "bold", fontSize: 13, overflow: "hidden" },
+    header: { padding: "16px 16px 10px", borderBottom: "4px double #ff00ff", background: "#000080", textAlign: "center" },
+    title: { fontSize: 30, fontWeight: 900, letterSpacing: "3px", fontFamily: '"Comic Sans MS", cursive', marginBottom: 2 },
+    subtitle: { fontSize: 12, color: "#ffff00", marginBottom: 6 },
+    visitorBar: { fontSize: 11, color: "#00ffff", marginBottom: 10 },
+    navBtn: (active) => ({ padding: "5px 18px", border: `3px ${active ? "inset" : "outset"} #00ffff`, cursor: "pointer", fontSize: 12, fontFamily: '"Comic Sans MS", cursive', background: active ? "#cc00cc" : "#000080", color: active ? "#ffff00" : "#00ffff", fontWeight: "bold", letterSpacing: "1px" }),
+    statCard: (warn) => ({ flex: 1, background: "#000066", border: `3px outset ${warn ? "#ff0000" : "#00ff00"}`, padding: "7px 10px" }),
+    statVal: (warn) => ({ fontSize: 17, fontWeight: 700, color: warn ? "#ff4444" : "#00ff00", lineHeight: 1 }),
+    statLabel: { fontSize: 9, color: "#00aaff", marginTop: 2, textTransform: "uppercase", letterSpacing: "1px" },
+    dateNav: { display: "flex", alignItems: "center", justifyContent: "space-between", padding: "8px 16px", borderBottom: "2px solid #ff00ff", background: "#000055" },
+    dateNavBtn: (active) => ({ background: "none", border: "none", cursor: active ? "pointer" : "default", color: active ? "#ff00ff" : "#330033", fontSize: 22, padding: "0 8px", fontWeight: "bold" }),
+    pastBanner: { background: "#330000", borderBottom: "2px solid #ff0000", padding: "6px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" },
+    msgWrap: (isUser) => ({ display: "flex", flexDirection: "column", alignItems: isUser ? "flex-end" : "flex-start", marginBottom: 14 }),
+    msgBubble: (isUser) => ({ maxWidth: "85%", background: isUser ? "#330033" : "#001a00", border: `2px solid ${isUser ? "#ff00ff" : "#00ff00"}`, padding: "9px 13px", fontSize: 13, lineHeight: 1.6, color: isUser ? "#ff88ff" : "#00ff88", whiteSpace: "pre-wrap", fontFamily: '"Comic Sans MS", cursive' }),
+    suggBtn: { background: "#000066", border: "2px outset #00ffff", padding: "4px 12px", color: "#00ffff", fontSize: 12, cursor: "pointer", fontFamily: '"Comic Sans MS", cursive', marginRight: 4, marginTop: 4 },
+    input: { flex: 1, background: "#000022", border: "3px inset #00ff00", padding: "9px 14px", color: "#00ff00", fontSize: 13, fontFamily: '"Comic Sans MS", cursive', outline: "none" },
+    sendBtn: { background: "#006600", border: "3px outset #00ff00", padding: "9px 16px", cursor: "pointer", fontSize: 16, color: "#ffff00", fontWeight: "bold" },
+  };
+
   return (
-    <div style={{ minHeight: "100vh", background: "#0e1117", color: "#e8e8e0", fontFamily: "Georgia,serif", display: "flex", flexDirection: "column", maxWidth: 600, margin: "0 auto" }}>
-      {/* Header */}
-      <div style={{ padding: "20px 20px 12px", borderBottom: "1px solid #1e2730", background: "#0e1117", position: "sticky", top: 0, zIndex: 10 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-          <div>
-            <div style={{ fontSize: 20, fontWeight: 700, color: "#c8e6c9" }}>nourish</div>
-            <div style={{ fontSize: 11, color: "#5a7a5a", letterSpacing: "2px", textTransform: "uppercase" }}>your daily companion</div>
-          </div>
-          <div style={{ display: "flex", gap: 8 }}>
-            {["chat", "report"].map(v => (
-              <button key={v} onClick={() => setView(v)} style={{ padding: "6px 16px", borderRadius: 20, border: "none", cursor: "pointer", fontSize: 13, fontFamily: "inherit", background: view === v ? "#2d4a2d" : "#1a2020", color: view === v ? "#c8e6c9" : "#5a7a5a" }}>
-                {v === "chat" ? "Chat" : "Progress"}
-              </button>
-            ))}
-          </div>
+    <div style={GEO.page}>
+
+      {/* Marquee */}
+      <div style={GEO.marqueeBar}>
+        <div className="marquee-wrap">
+          <span className="marquee-inner">
+            ✦ WELCOME 2 NOURISH ✦ LOG UR FOODZ ✦ LOSE WEIGHT 4EVER ✦ THIS PAGE IS BEST VIEWED IN 800x600 ✦ DO NOT STEAL MY HTML ✦ SIGN MY GUESTBOOK ✦ UNDER CONSTRUCTION ✦ NO HOTLINKING ✦ ✦ WELCOME 2 NOURISH ✦ LOG UR FOODZ ✦ LOSE WEIGHT 4EVER ✦
+          </span>
         </div>
-        <div style={{ display: "flex", gap: 12, marginTop: 14 }}>
+      </div>
+
+      {/* Header */}
+      <div style={GEO.header}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16, marginBottom: 4 }}>
+          <NosherSprite scale={0.9} label={false} />
+          <div>
+            <div style={GEO.title} className="rainbow">~*~ NOURISH ~*~</div>
+            <div style={GEO.subtitle}>
+              <span className="blink">★</span> UR PERSONAL CALORIE DIARY!! <span className="blink">★</span>
+            </div>
+            <div style={{ background: "#000033", border: "2px solid #ff00ff", padding: "5px 10px", fontSize: 11, color: "#ffff00", fontFamily: '"Comic Sans MS", cursive', marginTop: 4, position: "relative" }}>
+              <span style={{ position: "absolute", left: -10, top: "50%", transform: "translateY(-50%)", color: "#ff00ff", fontSize: 16 }}>◄</span>
+              hi!! i'm NOSHER!! i will help u eat good!!
+            </div>
+          </div>
+          <NosherSprite scale={0.9} label={false} />
+        </div>
+        <hr className="geo" />
+
+        <div style={{ display: "flex", gap: 8, justifyContent: "center", marginBottom: 12 }}>
+          {["chat", "report"].map(v => (
+            <button key={v} onClick={() => setView(v)} style={GEO.navBtn(view === v)}>
+              {v === "chat" ? "📖 JOURNAL" : "📊 PROGRESS"}
+            </button>
+          ))}
+        </div>
+
+        <div style={{ display: "flex", gap: 8 }}>
           {[
-            { label: "eaten today", val: `${todayCal}`, unit: "cal" },
-            { label: todayRemaining >= 0 ? "remaining" : "over goal", val: `${Math.abs(todayRemaining)}`, unit: "cal", warn: todayRemaining < 0 },
-            latestWeight ? { label: "current weight", val: `${latestWeight}`, unit: "lbs" } : null
+            { label: "eaten 2day", val: `${todayCal}`, unit: "cal" },
+            { label: todayRemaining >= 0 ? "remaining!!" : "OVER GOAL!!", val: `${Math.abs(todayRemaining)}`, unit: "cal", warn: todayRemaining < 0 },
+            latestWeight ? { label: "ur weight", val: `${latestWeight}`, unit: "lbs" } : null
           ].filter(Boolean).map((s, i) => (
-            <div key={i} style={{ flex: 1, background: "#131a13", borderRadius: 10, padding: "8px 12px", border: `1px solid ${s.warn ? "#5a2020" : "#1e2e1e"}` }}>
-              <div style={{ fontSize: 18, fontWeight: 700, color: s.warn ? "#e57373" : "#a5d6a7", lineHeight: 1 }}>{s.val} <span style={{ fontSize: 11, fontWeight: 400 }}>{s.unit}</span></div>
-              <div style={{ fontSize: 10, color: "#4a6a4a", marginTop: 2, textTransform: "uppercase", letterSpacing: "1px" }}>{s.label}</div>
+            <div key={i} style={GEO.statCard(s.warn)}>
+              <div style={GEO.statVal(s.warn)}>{s.val} <span style={{ fontSize: 10, fontWeight: 400 }}>{s.unit}</span></div>
+              <div style={GEO.statLabel}>{s.warn ? <span className="blink">{s.label}</span> : s.label}</div>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Chat View */}
+      {/* Journal View */}
       {view === "chat" && <>
-        <div style={{ flex: 1, overflowY: "auto", padding: "16px 16px 8px", minHeight: "60vh" }}>
-          {messages.map((m, i) => (
-            <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: m.role === "user" ? "flex-end" : "flex-start", marginBottom: 12 }}>
-              <div style={{ maxWidth: "82%", background: m.role === "user" ? "#1a3a2a" : "#141e14", border: `1px solid ${m.role === "user" ? "#2a4a3a" : "#1e2e1e"}`, borderRadius: m.role === "user" ? "18px 18px 4px 18px" : "18px 18px 18px 4px", padding: "10px 14px", fontSize: 14, lineHeight: 1.6, color: m.role === "user" ? "#c8e6c9" : "#d4dbd4", whiteSpace: "pre-wrap" }}>
+        {/* Date nav */}
+        <div style={GEO.dateNav}>
+          <button onClick={goToPrevEntry} disabled={!canGoPrev} style={GEO.dateNavBtn(canGoPrev)}>◄</button>
+          <div style={{ textAlign: "center" }}>
+            <div style={{ fontSize: 14, color: isViewingToday ? "#ffff00" : "#00ffff", fontWeight: "bold", fontFamily: '"Comic Sans MS", cursive' }} className={isViewingToday ? "textglow" : ""}>
+              {isViewingToday ? "✦ TODAY ✦" : formatDateFull(viewingDate)}
+            </div>
+            {isViewingToday && <div style={{ fontSize: 10, color: "#ff00ff", marginTop: 2 }}>{formatDateFull(today())}</div>}
+          </div>
+          <button onClick={goToNextEntry} disabled={!canGoNext} style={GEO.dateNavBtn(canGoNext)}>►</button>
+        </div>
+
+        {/* Past entry banner */}
+        {!isViewingToday && (
+          <div style={GEO.pastBanner}>
+            <span style={{ fontSize: 11, color: "#ff4444", fontWeight: "bold" }} className="blink">🚧 PAST ENTRY — READ ONLY 🚧</span>
+            <button onClick={() => setViewingDate(today())} style={{ background: "none", border: "1px solid #ff4444", color: "#ff6666", fontSize: 11, cursor: "pointer", fontFamily: '"Comic Sans MS", cursive', padding: "2px 8px" }}>Back 2 Today!!</button>
+          </div>
+        )}
+
+        <div style={{ flex: 1, overflowY: "auto", padding: "14px 14px 8px", minHeight: "55vh", background: "#000022" }}>
+          {viewMessages.length === 0 ? (
+            <div style={{ color: "#333366", fontSize: 14, textAlign: "center", padding: "40px 20px", fontFamily: '"Comic Sans MS", cursive' }}>
+              no entry 4 this day... :(<br/>
+              <span style={{ fontSize: 20 }}>☆彡</span>
+            </div>
+          ) : viewMessages.map((m, i) => (
+            <div key={i} style={GEO.msgWrap(m.role === "user")}>
+              <div style={{ fontSize: 9, color: "#444488", marginBottom: 2, paddingLeft: 4, paddingRight: 4, display: "flex", alignItems: "center", gap: 4 }}>
+                {m.role === "user" ? "you said >>" : (
+                  <>
+                    <span style={{ fontSize: 16, lineHeight: 1 }} className="nosher" title="Nosher">ᕙ(◕ᴗ◕)ᕗ</span>
+                    <span style={{ color: "#ff88ff" }}>Nosher says &gt;&gt;</span>
+                  </>
+                )}
+              </div>
+              <div style={GEO.msgBubble(m.role === "user")}>
                 {renderText(m.text)}
               </div>
-              {m.suggestions && (
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 6, maxWidth: "90%" }}>
+              {m.suggestions && isViewingToday && (
+                <div style={{ display: "flex", flexWrap: "wrap", marginTop: 6, maxWidth: "90%" }}>
                   {m.suggestions.map((name, j) => {
                     const food = FOODS.find(f => f[0] === name);
                     return food ? (
-                      <button key={j} onClick={() => logFood(food[0], food[1], food[0])} style={{ background: "#1a2e1a", border: "1px solid #2a4a2a", borderRadius: 14, padding: "4px 12px", color: "#a5d6a7", fontSize: 12, cursor: "pointer", fontFamily: "inherit" }}>
-                        {name} <span style={{ color: "#4a7a4a" }}>({food[1]} cal)</span>
+                      <button key={j} onClick={() => logFood(food[0], food[1], food[0])} style={GEO.suggBtn}>
+                        {name} <span style={{ color: "#ffff00" }}>({food[1]} cal)</span>
                       </button>
                     ) : null;
                   })}
@@ -279,99 +498,115 @@ function App() {
           <div ref={bottomRef} />
         </div>
 
-        {suggestions.length > 0 && (
-          <div style={{ padding: "0 16px 8px", display: "flex", flexWrap: "wrap", gap: 6 }}>
+        {isViewingToday && suggestions.length > 0 && (
+          <div style={{ padding: "0 14px 8px", display: "flex", flexWrap: "wrap", background: "#000022", borderTop: "1px solid #000066" }}>
             {suggestions.map((s, i) => (
-              <button key={i} onClick={() => logFood(s.name, s.cal, s.name)} style={{ background: "#131e13", border: "1px solid #2a4a2a", borderRadius: 14, padding: "5px 14px", color: "#c8e6c9", fontSize: 13, cursor: "pointer", fontFamily: "inherit" }}>
-                {s.name} <span style={{ color: "#4a7a4a", fontSize: 11 }}>{s.cal} cal</span>
+              <button key={i} onClick={() => logFood(s.name, s.cal, s.name)} style={GEO.suggBtn}>
+                {s.name} <span style={{ color: "#ffff00", fontSize: 11 }}>{s.cal} cal</span>
               </button>
             ))}
           </div>
         )}
 
-        <div style={{ padding: "12px 16px 20px", borderTop: "1px solid #1e2730", background: "#0e1117" }}>
-          <div style={{ display: "flex", gap: 8 }}>
-            <input
-              value={input}
-              onChange={e => handleInput(e.target.value)}
-              onKeyDown={e => e.key === "Enter" && handleSend()}
-              placeholder="banana, chicken breast, 148 lbs…"
-              style={{ flex: 1, background: "#141e14", border: "1px solid #2a3a2a", borderRadius: 24, padding: "10px 18px", color: "#e8e8e0", fontSize: 14, fontFamily: "inherit", outline: "none" }}
-            />
-            <button onClick={handleSend} style={{ background: "#2d4a2d", border: "none", borderRadius: "50%", width: 44, height: 44, cursor: "pointer", fontSize: 18, flexShrink: 0, color: "#c8e6c9" }}>↑</button>
+        {isViewingToday && (
+          <div style={{ padding: "10px 14px 14px", borderTop: "3px double #ff00ff", background: "#000044" }}>
+            <div style={{ display: "flex", gap: 6 }}>
+              <input
+                value={input}
+                onChange={e => handleInput(e.target.value)}
+                onKeyDown={e => e.key === "Enter" && handleSend()}
+                placeholder="banana, chicken breast, 148 lbs…"
+                style={GEO.input}
+              />
+              <button onClick={handleSend} style={GEO.sendBtn}>GO!!</button>
+            </div>
+            <div style={{ fontSize: 10, color: "#006600", textAlign: "center", marginTop: 6, fontFamily: '"Comic Sans MS", cursive' }}>
+              ✦ type a food 2 c calorie suggestions ✦ type a number 2 log weight ✦
+            </div>
           </div>
-          <div style={{ fontSize: 11, color: "#3a5a3a", textAlign: "center", marginTop: 8 }}>Type a food to see calorie suggestions · Type a number to log weight</div>
-        </div>
+        )}
       </>}
 
       {/* Progress View */}
       {view === "report" && (
-        <div style={{ flex: 1, overflowY: "auto", padding: "20px 16px" }}>
-          <div style={{ background: "#131a13", border: "1px solid #1e2e1e", borderRadius: 14, padding: "16px 20px", marginBottom: 20 }}>
-            <div style={{ fontSize: 12, color: "#4a6a4a", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: 10 }}>Weight Journey</div>
+        <div style={{ flex: 1, overflowY: "auto", padding: "16px 14px", background: "#000022" }}>
+
+          <div style={{ border: "3px outset #ff00ff", background: "#000055", padding: "14px", marginBottom: 16 }}>
+            <div style={{ fontSize: 11, color: "#ff00ff", textTransform: "uppercase", letterSpacing: "2px", marginBottom: 8, fontWeight: "bold" }}>✦ Weight Journey ✦</div>
             {startWeight ? (
-              <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
+              <div style={{ display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
                 <div>
-                  <div style={{ fontSize: 22, fontWeight: 700, color: "#a5d6a7" }}>{startWeight} <span style={{ fontSize: 13, fontWeight: 400 }}>lbs</span></div>
-                  <div style={{ fontSize: 11, color: "#4a6a4a" }}>start{startDate ? ` · ${formatDate(startDate)}` : ""}</div>
+                  <div style={{ fontSize: 22, fontWeight: 700, color: "#00ff00" }}>{startWeight} <span style={{ fontSize: 12, fontWeight: 400 }}>lbs</span></div>
+                  <div style={{ fontSize: 10, color: "#00aaff" }}>start{startDate ? ` · ${formatDate(startDate)}` : ""}</div>
                 </div>
                 {latestWeight && latestWeight !== startWeight && <>
-                  <div style={{ color: "#2a4a2a", fontSize: 20, alignSelf: "center" }}>→</div>
+                  <div style={{ color: "#ff00ff", fontSize: 22, fontWeight: "bold" }}>→</div>
                   <div>
-                    <div style={{ fontSize: 22, fontWeight: 700, color: "#c8e6c9" }}>{latestWeight} <span style={{ fontSize: 13, fontWeight: 400 }}>lbs</span></div>
-                    <div style={{ fontSize: 11, color: "#4a6a4a" }}>now</div>
+                    <div style={{ fontSize: 22, fontWeight: 700, color: "#ffff00" }}>{latestWeight} <span style={{ fontSize: 12, fontWeight: 400 }}>lbs</span></div>
+                    <div style={{ fontSize: 10, color: "#00aaff" }}>now!!</div>
                   </div>
                   <div>
-                    <div style={{ fontSize: 22, fontWeight: 700, color: parseFloat(totalLost) > 0 ? "#81c784" : "#e57373" }}>{parseFloat(totalLost) > 0 ? "−" : "+"}{Math.abs(totalLost)} <span style={{ fontSize: 13, fontWeight: 400 }}>lbs</span></div>
-                    <div style={{ fontSize: 11, color: "#4a6a4a" }}>{onTrack === true ? "✓ on track" : onTrack === false ? "behind pace" : "change"}</div>
+                    <div style={{ fontSize: 22, fontWeight: 700, color: parseFloat(totalLost) > 0 ? "#00ff00" : "#ff4444" }}>
+                      {parseFloat(totalLost) > 0 ? "−" : "+"}{Math.abs(totalLost)} <span style={{ fontSize: 12, fontWeight: 400 }}>lbs</span>
+                    </div>
+                    <div style={{ fontSize: 10, color: onTrack === true ? "#00ff00" : "#ff4444" }}>{onTrack === true ? "✓ on track!!" : onTrack === false ? "behind pace :(" : "change"}</div>
                   </div>
                 </>}
               </div>
-            ) : <div style={{ color: "#4a6a4a", fontSize: 14 }}>No weight logged yet — type a number in chat!</div>}
-            {daysTracking > 0 && <div style={{ marginTop: 10, fontSize: 12, color: "#4a7a4a" }}>Goal: {WEEKLY_LBS_GOAL} lbs/week · {daysTracking} days in · expected loss: {((daysTracking / 7) * WEEKLY_LBS_GOAL).toFixed(1)} lbs</div>}
+            ) : <div style={{ color: "#444488", fontSize: 13, fontFamily: '"Comic Sans MS", cursive' }}>no weight logged yet!! type a number in the journal!! :)</div>}
+            {daysTracking > 0 && <div style={{ marginTop: 8, fontSize: 11, color: "#00aaff" }}>Goal: {WEEKLY_LBS_GOAL} lbs/week · {daysTracking} days in · expected loss: {((daysTracking / 7) * WEEKLY_LBS_GOAL).toFixed(1)} lbs</div>}
           </div>
 
           {weightData.length > 1 && (
-            <div style={{ marginBottom: 20 }}>
-              <div style={{ fontSize: 12, color: "#4a6a4a", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: 12 }}>Weight Trend</div>
+            <div style={{ marginBottom: 16 }}>
+              <div style={{ fontSize: 11, color: "#ff00ff", textTransform: "uppercase", letterSpacing: "2px", marginBottom: 8, fontWeight: "bold" }}>✦ Weight Trend ✦</div>
               <WeightChart data={weightData} />
             </div>
           )}
 
-          <div style={{ marginBottom: 20 }}>
-            <div style={{ fontSize: 12, color: "#4a6a4a", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: 12 }}>Daily Calories · Last 30 Days</div>
-            <div style={{ background: "#131a13", border: "1px solid #1e2e1e", borderRadius: 14, padding: "16px 12px" }}>
+          <div style={{ marginBottom: 16 }}>
+            <div style={{ fontSize: 11, color: "#ff00ff", textTransform: "uppercase", letterSpacing: "2px", marginBottom: 8, fontWeight: "bold" }}>✦ Daily Calories · Last 30 Days ✦</div>
+            <div style={{ background: "#000044", border: "3px outset #00ffff", padding: "14px 10px" }}>
               <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height: 100 }}>
                 {calData.map((d, i) => (
-                  <div key={i} title={`${formatDate(d.date)}: ${d.cal} cal`} style={{ flex: 1, height: d.hasData ? `${Math.max(3, (d.cal / maxCal) * 100)}%` : 0, background: d.cal > DAILY_CALORIE_GOAL ? "#5a2020" : "#2d4a2d", borderRadius: "3px 3px 0 0", minHeight: d.hasData ? 3 : 0 }} />
+                  <div key={i} title={`${formatDate(d.date)}: ${d.cal} cal`} style={{ flex: 1, height: d.hasData ? `${Math.max(3, (d.cal / maxCal) * 100)}%` : 0, background: d.cal > DAILY_CALORIE_GOAL ? "#ff2222" : "#00cc00", minHeight: d.hasData ? 3 : 0 }} />
                 ))}
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
-                <span style={{ fontSize: 10, color: "#3a5a3a" }}>{formatDate(days30[0])}</span>
-                <span style={{ fontSize: 10, color: "#4a7a4a" }}>— {DAILY_CALORIE_GOAL} cal goal</span>
-                <span style={{ fontSize: 10, color: "#3a5a3a" }}>today</span>
+                <span style={{ fontSize: 9, color: "#00aaff" }}>{formatDate(days30[0])}</span>
+                <span style={{ fontSize: 9, color: "#ff00ff" }}>— {DAILY_CALORIE_GOAL} cal goal —</span>
+                <span style={{ fontSize: 9, color: "#00aaff" }}>today</span>
               </div>
             </div>
           </div>
 
           <div>
-            <div style={{ fontSize: 12, color: "#4a6a4a", textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: 12 }}>Recent Days</div>
+            <div style={{ fontSize: 11, color: "#ff00ff", textTransform: "uppercase", letterSpacing: "2px", marginBottom: 8, fontWeight: "bold" }}>✦ Recent Days ✦</div>
             {calData.filter(d => d.hasData).reverse().slice(0, 14).map((d, i) => (
-              <div key={i} style={{ background: "#131a13", border: "1px solid #1e2e1e", borderRadius: 10, padding: "10px 16px", marginBottom: 6, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <div key={i} onClick={() => { setView("chat"); setViewingDate(d.date); }} style={{ background: "#000055", border: "2px outset #0000aa", padding: "9px 14px", marginBottom: 6, display: "flex", justifyContent: "space-between", alignItems: "center", cursor: "pointer" }}>
                 <div>
-                  <div style={{ fontSize: 13, color: "#c8e6c9" }}>{formatDate(d.date)}</div>
-                  {(foodLog[d.date] || []).map((e, j) => <div key={j} style={{ fontSize: 11, color: "#4a6a4a" }}>{e.desc} · {e.cal} cal</div>)}
+                  <div style={{ fontSize: 13, color: "#ffff00", fontWeight: "bold", fontFamily: '"Comic Sans MS", cursive' }}>{d.date === today() ? "★ Today ★" : formatDate(d.date)}</div>
+                  {(foodLog[d.date] || []).map((e, j) => <div key={j} style={{ fontSize: 10, color: "#00aaff" }}>{e.desc} · {e.cal} cal</div>)}
                 </div>
                 <div style={{ textAlign: "right" }}>
-                  <div style={{ fontSize: 16, fontWeight: 700, color: d.cal > DAILY_CALORIE_GOAL ? "#e57373" : "#81c784" }}>{d.cal}</div>
-                  <div style={{ fontSize: 10, color: "#3a5a3a" }}>cal</div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: d.cal > DAILY_CALORIE_GOAL ? "#ff4444" : "#00ff00" }}>{d.cal}</div>
+                  <div style={{ fontSize: 9, color: "#444488" }}>cal</div>
                 </div>
               </div>
             ))}
-            {!calData.some(d => d.hasData) && <div style={{ color: "#3a5a3a", fontSize: 14, textAlign: "center", padding: "20px 0" }}>No food logged yet.</div>}
+            {!calData.some(d => d.hasData) && <div style={{ color: "#333366", fontSize: 13, textAlign: "center", padding: "20px 0", fontFamily: '"Comic Sans MS", cursive' }}>no food logged yet!! :(<br/>☆彡</div>}
           </div>
         </div>
       )}
+
+      {/* Footer */}
+      <div style={{ background: "#000080", borderTop: "4px double #ff00ff", padding: "10px", textAlign: "center" }}>
+        <NosherSprite scale={0.75} />
+        <div style={{ fontSize: 10, color: "#ff00ff", margin: "4px 0" }}>
+          <span className="spin">✦</span> &nbsp; Nosher is always watching. Nosher is always hungry. &nbsp; <span className="spin">✦</span>
+        </div>
+      </div>
+
     </div>
   );
 }
