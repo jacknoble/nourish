@@ -53,8 +53,18 @@
     0%, 90%, 100% { transform: scaleY(1); }
     95%           { transform: scaleY(0.7); }
   }
+  @keyframes nosherFull {
+    0%   { transform: translateY(0px) rotate(0deg) scaleX(1); }
+    20%  { transform: translateY(2px) rotate(-4deg) scaleX(1.08); }
+    40%  { transform: translateY(4px) rotate(3deg) scaleX(1.12); }
+    60%  { transform: translateY(2px) rotate(-2deg) scaleX(1.1); }
+    80%  { transform: translateY(3px) rotate(4deg) scaleX(1.08); }
+    100% { transform: translateY(0px) rotate(0deg) scaleX(1); }
+  }
   .nosher { animation: nosherBounce 1.4s ease-in-out infinite; display: inline-block; cursor: default; }
   .nosher:hover { animation-play-state: paused; filter: brightness(1.5); }
+  .nosher-full { animation: nosherFull 2.5s ease-in-out infinite; display: inline-block; cursor: default; }
+  .nosher-full:hover { animation-play-state: paused; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html, body {
     min-height: 100%;
@@ -98,7 +108,7 @@
 <script type="text/babel">
 const { useState, useEffect, useRef, useMemo } = React;
 
-const DAILY_CALORIE_GOAL = 1500;
+const DEFAULT_CALORIE_GOAL = 1500;
 const WEEKLY_LBS_GOAL = 2;
 
 const FOODS = [
@@ -187,7 +197,14 @@ function formatDateFull(d) { const [y, m, day] = d.split("-"); return new Date(y
 function daysBetween(d1, d2) { return Math.round((new Date(d2) - new Date(d1)) / 86400000); }
 function parseWeight(text) { const m = text.match(/(\d{2,3}(\.\d{1,2})?)/); if (!m) return null; const n = parseFloat(m[1]); return (n < 50 || n > 700) ? null : n; }
 function looksLikeWeight(text) { const t = text.toLowerCase(); return ["weigh", "weight", "lbs", "lb", "pounds", "scale", "kg"].some(w => t.includes(w)) || /^\d{2,3}(\.\d{1,2})?\s*(lbs?|kg|pounds?)?$/.test(t.trim()); }
-function looksLikeCalories(text) { return /\d+\s*(cals?|calories|kcal)/i.test(text); }
+function looksLikeCalories(text) { return /\d+\s*(cals?|calories|kcal)/i.test(text) && !looksLikeGoalChange(text); }
+function looksLikeGoalChange(text) { return /(set|change|update|my|new)?\s*goal|goal\s*(is|to|=|:)/i.test(text); }
+function parseGoalChange(text) {
+  const m = text.match(/(\d{3,4})/);
+  if (!m) return null;
+  const n = parseInt(m[1]);
+  return (n >= 500 && n <= 9999) ? n : null;
+}
 function parseCalories(text) {
   const m = text.match(/(\d+)\s*(cals?|calories|kcal)/i);
   if (!m) return null;
@@ -204,27 +221,28 @@ function renderText(text) {
   );
 }
 
-function NosherSprite({ scale = 1, label = true }) {
+function NosherSprite({ scale = 1, label = true, tooFull = false }) {
+  if (tooFull) {
+    return (
+      <div className="nosher-full" style={{ textAlign: "center", lineHeight: 1.1, userSelect: "none", display: "inline-block" }}>
+        <div style={{ fontSize: 13 * scale, fontFamily: "monospace", color: "#ffff00", letterSpacing: 0 }}>╭──●──╮</div>
+        <div style={{ fontSize: 13 * scale, fontFamily: "monospace", color: "#ffff00" }}>│≧﹏≦ノ│</div>
+        <div style={{ fontSize: 12 * scale, fontFamily: "monospace", color: "#ffff00" }}>╰──●──╯</div>
+        <div style={{ fontSize: 13 * scale, fontFamily: "monospace", color: "#ffffff" }}>🤢 ┃ 🍕</div>
+        <div style={{ fontSize: 11 * scale, fontFamily: "monospace", color: "#ffff00" }}>&nbsp;╱&nbsp;┃&nbsp;╲</div>
+        <div style={{ fontSize: 11 * scale, fontFamily: "monospace", color: "#ffff00" }}>╱&nbsp;&nbsp;&nbsp;╲</div>
+        {label && <div style={{ fontSize: 9 * scale, color: "#ff4444", fontFamily: '"Comic Sans MS", "Comic Neue", "Chalkboard SE", "Marker Felt", sans-serif', fontWeight: "bold", marginTop: 1, animation: "blink 0.5s step-start infinite" }}>TOO FULL!!!</div>}
+      </div>
+    );
+  }
   return (
     <div className="nosher" style={{ textAlign: "center", lineHeight: 1.1, userSelect: "none", display: "inline-block" }}>
-      <div style={{ fontSize: 13 * scale, fontFamily: "monospace", color: "#00ff88", letterSpacing: 0 }}>
-        ╭─────╮
-      </div>
-      <div style={{ fontSize: 13 * scale, fontFamily: "monospace", color: "#00ff88" }}>
-        │◕ᴗ◕ノ│
-      </div>
-      <div style={{ fontSize: 12 * scale, fontFamily: "monospace", color: "#ff88ff" }}>
-        ╰──┬──╯
-      </div>
-      <div style={{ fontSize: 13 * scale, fontFamily: "monospace", color: "#ffff00" }}>
-        🍴 ┃ 🍴
-      </div>
-      <div style={{ fontSize: 11 * scale, fontFamily: "monospace", color: "#00ffff" }}>
-        &nbsp;╱&nbsp;┃&nbsp;╲
-      </div>
-      <div style={{ fontSize: 11 * scale, fontFamily: "monospace", color: "#00ffff" }}>
-        ╱&nbsp;&nbsp;&nbsp;╲
-      </div>
+      <div style={{ fontSize: 13 * scale, fontFamily: "monospace", color: "#00ff88", letterSpacing: 0 }}>╭─────╮</div>
+      <div style={{ fontSize: 13 * scale, fontFamily: "monospace", color: "#00ff88" }}>│◕ᴗ◕ノ│</div>
+      <div style={{ fontSize: 12 * scale, fontFamily: "monospace", color: "#ff88ff" }}>╰──┬──╯</div>
+      <div style={{ fontSize: 13 * scale, fontFamily: "monospace", color: "#ffff00" }}>🍴 ┃ 🍴</div>
+      <div style={{ fontSize: 11 * scale, fontFamily: "monospace", color: "#00ffff" }}>&nbsp;╱&nbsp;┃&nbsp;╲</div>
+      <div style={{ fontSize: 11 * scale, fontFamily: "monospace", color: "#00ffff" }}>╱&nbsp;&nbsp;&nbsp;╲</div>
       {label && <div style={{ fontSize: 9 * scale, color: "#ff00ff", fontFamily: '"Comic Sans MS", "Comic Neue", "Chalkboard SE", "Marker Felt", sans-serif', fontWeight: "bold", marginTop: 1, animation: "blink 2s step-start infinite" }}>NOSHER</div>}
     </div>
   );
@@ -259,6 +277,7 @@ function App() {
   const [weightLog, setWeightLog] = useState({});
   const [startWeight, setStartWeight] = useState(null);
   const [startDate, setStartDate] = useState(null);
+  const [calorieGoal, setCalorieGoal] = useState(DEFAULT_CALORIE_GOAL);
   const [visitors, setVisitors] = useState(1337);
   const bottomRef = useRef(null);
 
@@ -267,6 +286,7 @@ function App() {
       try { const r = await storage.get("chatLog"); if (r) setChatLog(JSON.parse(r.value)); } catch {}
       try { const r = await storage.get("foodLog"); if (r) setFoodLog(JSON.parse(r.value)); } catch {}
       try { const r = await storage.get("weightLog"); if (r) setWeightLog(JSON.parse(r.value)); } catch {}
+      try { const r = await storage.get("calorieGoal"); if (r) setCalorieGoal(parseInt(r.value)); } catch {}
       try { const r = await storage.get("startWeight"); if (r) setStartWeight(parseFloat(r.value)); } catch {}
       try { const r = await storage.get("startDate"); if (r) setStartDate(r.value); } catch {}
       const v = parseInt(localStorage.getItem("nourish_visitors") || "1336") + 1;
@@ -309,10 +329,14 @@ function App() {
     setFoodLog(newLog);
     try { await storage.set("foodLog", JSON.stringify(newLog)); } catch {}
     const todayTotal = newLog[date].reduce((s, e) => s + e.cal, 0);
-    const remaining = DAILY_CALORIE_GOAL - todayTotal;
+    const remaining = calorieGoal - todayTotal;
     const extra = remaining < 0 ? `${Math.abs(remaining)} cal over goal omg!!` : `${remaining} cal remaining!! keep going!! :D`;
     const loggedName = name === "custom entry" ? `${cal} calories` : `${name} — ${cal} cal`;
-    await addToChat({ role: "user", text: displayText }, { role: "assistant", text: `ooh yes!! nosher has logged **${loggedName}**!! 🍴\n\nToday: **${todayTotal} cal** eaten · **${extra}**` });
+    const tooFull = todayTotal >= calorieGoal;
+    const responseText = tooFull
+      ? `nosher too full!! 🤢 but logged **${loggedName}**...\n\nToday: **${todayTotal} cal** eaten · **${extra}**`
+      : `ooh yes!! nosher has logged **${loggedName}**!! 🍴\n\nToday: **${todayTotal} cal** eaten · **${extra}**`;
+    await addToChat({ role: "user", text: displayText }, { role: "assistant", text: responseText, nosherFull: tooFull });
     setInput(""); setSuggestions([]);
     setViewingDate(today());
   }
@@ -338,9 +362,19 @@ function App() {
     setViewingDate(today());
   }
 
+  async function changeGoal(newGoal, displayText) {
+    setCalorieGoal(newGoal);
+    try { await storage.set("calorieGoal", String(newGoal)); } catch {}
+    const remaining = newGoal - todayCal;
+    const note = remaining > 0 ? `that leaves u **${remaining} cal** for today!!` : `u've already gone **${Math.abs(remaining)} cal** over that today!!`;
+    await addToChat({ role: "user", text: displayText }, { role: "assistant", text: `nosher has updated ur goal to **${newGoal} cal/day**!! 🎯\n\n${note}` });
+    setInput(""); setViewingDate(today());
+  }
+
   function handleSend() {
     const text = input.trim(); if (!text) return;
     if (looksLikeWeight(text)) { const w = parseWeight(text); if (w) { logWeight(w, text); return; } }
+    if (looksLikeGoalChange(text)) { const g = parseGoalChange(text); if (g) { changeGoal(g, text); return; } }
     if (looksLikeCalories(text)) { const p = parseCalories(text); if (p) { logFood(p.desc, p.cal, text); return; } }
     const results = searchFoods(text);
     if (results.length > 0 && results[0].score >= 300) { logFood(results[0].name, results[0].cal, text); }
@@ -372,12 +406,12 @@ function App() {
   const calData = days30.map(d => ({ date: d, cal: (foodLog[d] || []).reduce((s, e) => s + e.cal, 0), hasData: !!(foodLog[d]?.length) }));
   const weightData = days30.filter(d => weightLog[d]).map(d => ({ date: d, w: weightLog[d] }));
   const todayCal = (foodLog[today()] || []).reduce((s, e) => s + e.cal, 0);
-  const todayRemaining = DAILY_CALORIE_GOAL - todayCal;
+  const todayRemaining = calorieGoal - todayCal;
   const latestWeight = weightData.length ? weightData[weightData.length - 1].w : null;
   const totalLost = (startWeight && latestWeight) ? (startWeight - latestWeight).toFixed(1) : null;
   const daysTracking = startDate ? daysBetween(startDate, today()) : 0;
   const onTrack = totalLost !== null && daysTracking > 0 ? parseFloat(totalLost) >= (daysTracking / 7) * WEEKLY_LBS_GOAL : null;
-  const maxCal = Math.max(...calData.map(d => d.cal), DAILY_CALORIE_GOAL);
+  const maxCal = Math.max(...calData.map(d => d.cal), calorieGoal);
 
   const GEO = {
     page: { minHeight: "100vh", display: "flex", flexDirection: "column", maxWidth: 680, margin: "0 auto", border: "4px solid #ff00ff", background: "#000033" },
@@ -415,7 +449,7 @@ function App() {
       {/* Header */}
       <div style={GEO.header}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16, marginBottom: 4 }}>
-          <NosherSprite scale={0.9} label={false} />
+          <NosherSprite scale={0.9} label={false} tooFull={todayCal >= calorieGoal} />
           <div>
             <div style={GEO.title} className="rainbow">~*~ NOURISH ~*~</div>
             <div style={GEO.subtitle}>
@@ -426,7 +460,7 @@ function App() {
               hi!! i am NOSHER!! i will help u eat good!! 🍴
             </div>
           </div>
-          <NosherSprite scale={0.9} label={false} />
+          <NosherSprite scale={0.9} label={false} tooFull={todayCal >= calorieGoal} />
         </div>
         <hr className="geo" />
 
@@ -441,7 +475,7 @@ function App() {
         <div style={{ display: "flex", gap: 8 }}>
           {[
             { label: "eaten 2day", val: `${todayCal}`, unit: "cal" },
-            { label: todayRemaining >= 0 ? "remaining!!" : "OVER GOAL!!", val: `${Math.abs(todayRemaining)}`, unit: "cal", warn: todayRemaining < 0 },
+            { label: todayRemaining >= 0 ? `of ${calorieGoal} · remaining` : "OVER GOAL!!", val: `${Math.abs(todayRemaining)}`, unit: "cal", warn: todayRemaining < 0 },
             latestWeight ? { label: "ur weight", val: `${latestWeight}`, unit: "lbs" } : null
           ].filter(Boolean).map((s, i) => (
             <div key={i} style={GEO.statCard(s.warn)}>
@@ -482,10 +516,10 @@ function App() {
             </div>
           ) : viewMessages.map((m, i) => (
             <div key={i} style={GEO.msgWrap(m.role === "user")}>
-              <div style={{ fontSize: 9, color: "#444488", marginBottom: 2, paddingLeft: 4, paddingRight: 4, display: "flex", alignItems: "center", gap: 4 }}>
+              <div style={{ fontSize: 9, color: "#8888cc", marginBottom: 2, paddingLeft: 4, paddingRight: 4, display: "flex", alignItems: "center", gap: 4 }}>
                 {m.role === "user" ? "you said >>" : (
                   <>
-                    <span style={{ fontSize: 16, lineHeight: 1 }} className="nosher" title="Nosher">ᕙ(◕ᴗ◕)ᕗ</span>
+                    <span style={{ fontSize: 16, lineHeight: 1 }} className={m.nosherFull ? "nosher-full" : "nosher"} title="Nosher">{m.nosherFull ? "ᕙ(≧﹏≦)ᕗ" : "ᕙ(◕ᴗ◕)ᕗ"}</span>
                     <span style={{ color: "#ff88ff" }}>Nosher says &gt;&gt;</span>
                   </>
                 )}
@@ -533,7 +567,7 @@ function App() {
               <button onClick={handleSend} style={GEO.sendBtn}>GO!!</button>
             </div>
             <div style={{ fontSize: 10, color: "#006600", textAlign: "center", marginTop: 6, fontFamily: '"Comic Sans MS", "Comic Neue", "Chalkboard SE", "Marker Felt", sans-serif' }}>
-              ✦ type a food · or "burger 650 cal" · or "148 lbs" ✦
+              ✦ food · "burger 650 cal" · "148 lbs" · "goal 1800" ✦
             </div>
           </div>
         )}
@@ -581,12 +615,12 @@ function App() {
             <div style={{ background: "#000044", border: "3px outset #00ffff", padding: "14px 10px" }}>
               <div style={{ display: "flex", alignItems: "flex-end", gap: 3, height: 100 }}>
                 {calData.map((d, i) => (
-                  <div key={i} title={`${formatDate(d.date)}: ${d.cal} cal`} style={{ flex: 1, height: d.hasData ? `${Math.max(3, (d.cal / maxCal) * 100)}%` : 0, background: d.cal > DAILY_CALORIE_GOAL ? "#ff2222" : "#00cc00", minHeight: d.hasData ? 3 : 0 }} />
+                  <div key={i} title={`${formatDate(d.date)}: ${d.cal} cal`} style={{ flex: 1, height: d.hasData ? `${Math.max(3, (d.cal / maxCal) * 100)}%` : 0, background: d.cal > calorieGoal ? "#ff2222" : "#00cc00", minHeight: d.hasData ? 3 : 0 }} />
                 ))}
               </div>
               <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
                 <span style={{ fontSize: 9, color: "#00aaff" }}>{formatDate(days30[0])}</span>
-                <span style={{ fontSize: 9, color: "#ff00ff" }}>— {DAILY_CALORIE_GOAL} cal goal —</span>
+                <span style={{ fontSize: 9, color: "#ff00ff" }}>— {calorieGoal} cal goal —</span>
                 <span style={{ fontSize: 9, color: "#00aaff" }}>today</span>
               </div>
             </div>
@@ -601,7 +635,7 @@ function App() {
                   {(foodLog[d.date] || []).map((e, j) => <div key={j} style={{ fontSize: 10, color: "#00aaff" }}>{e.desc} · {e.cal} cal</div>)}
                 </div>
                 <div style={{ textAlign: "right" }}>
-                  <div style={{ fontSize: 18, fontWeight: 700, color: d.cal > DAILY_CALORIE_GOAL ? "#ff4444" : "#00ff00" }}>{d.cal}</div>
+                  <div style={{ fontSize: 18, fontWeight: 700, color: d.cal > calorieGoal ? "#ff4444" : "#00ff00" }}>{d.cal}</div>
                   <div style={{ fontSize: 9, color: "#444488" }}>cal</div>
                 </div>
               </div>
@@ -613,7 +647,7 @@ function App() {
 
       {/* Footer */}
       <div style={{ background: "#000080", borderTop: "4px double #ff00ff", padding: "10px", textAlign: "center" }}>
-        <NosherSprite scale={0.75} />
+        <NosherSprite scale={0.75} tooFull={todayCal >= calorieGoal} />
         <div style={{ fontSize: 10, color: "#ff00ff", margin: "4px 0" }}>
           <span className="spin">✦</span> &nbsp; Nosher is always watching. Nosher is always hungry. &nbsp; <span className="spin">✦</span>
         </div>
