@@ -191,7 +191,8 @@ function searchFoods(query) {
   return scored.slice(0, 6);
 }
 
-function today() { return new Date().toISOString().slice(0, 10); }
+function localDateStr(d = new Date()) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
+function today() { return localDateStr(); }
 function formatDate(d) { const [y, m, day] = d.split("-"); return new Date(y, m - 1, day).toLocaleDateString("en-US", { month: "short", day: "numeric" }); }
 function formatDateFull(d) { const [y, m, day] = d.split("-"); return new Date(y, m - 1, day).toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" }); }
 function daysBetween(d1, d2) { return Math.round((new Date(d2) - new Date(d1)) / 86400000); }
@@ -213,7 +214,7 @@ function parseCalories(text) {
   const desc = text.replace(/\d+\s*(cals?|calories|kcal)/i, "").replace(/^[\s,\-–]+|[\s,\-–]+$/g, "").trim();
   return { cal, desc: desc || "custom entry" };
 }
-function shiftDate(dateStr, delta) { const d = new Date(dateStr + "T00:00:00"); d.setDate(d.getDate() + delta); return d.toISOString().slice(0, 10); }
+function shiftDate(dateStr, delta) { const d = new Date(dateStr + "T00:00:00"); d.setDate(d.getDate() + delta); return localDateStr(d); }
 
 function renderText(text) {
   return text.split(/\*\*(.*?)\*\*/).map((p, j) =>
@@ -401,7 +402,7 @@ function App() {
   function goToPrevEntry() { const prev = journalDates.find(d => d < viewingDate); if (prev) setViewingDate(prev); }
   function goToNextEntry() { const all = [...journalDates].reverse(); const next = all.find(d => d > viewingDate); if (next) setViewingDate(next); }
 
-  function getLast30Days() { const days = []; for (let i = 29; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); days.push(d.toISOString().slice(0, 10)); } return days; }
+  function getLast30Days() { const days = []; for (let i = 29; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); days.push(localDateStr(d)); } return days; }
   const days30 = getLast30Days();
   const calData = days30.map(d => ({ date: d, cal: (foodLog[d] || []).reduce((s, e) => s + e.cal, 0), hasData: !!(foodLog[d]?.length) }));
   const weightData = days30.filter(d => weightLog[d]).map(d => ({ date: d, w: weightLog[d] }));
